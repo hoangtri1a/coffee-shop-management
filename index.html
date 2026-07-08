@@ -219,35 +219,53 @@
             font-size: 1.1rem;
         }
 
-        /* Khu vực hiển thị lịch sử 30 ngày */
-        .history-section {
+        /* Bố cục khu vực lịch sử phía dưới */
+        .bottom-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
             margin-top: 20px;
+        }
+
+        .history-section, .recent-bills-section {
             background: white;
             padding: 15px;
             border-radius: 8px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
 
-        .history-list {
+        .scroll-list {
             margin-top: 10px;
-            max-height: 200px;
+            max-height: 250px;
             overflow-y: auto;
         }
 
-        .history-item {
+        .history-item, .bill-item {
             display: flex;
             justify-content: space-between;
-            padding: 8px 10px;
+            align-items: center;
+            padding: 10px;
             border-bottom: 1px solid #eee;
         }
 
-        .history-item:nth-child(even) {
+        .history-item:nth-child(even), .bill-item:nth-child(even) {
             background-color: #fcfbfa;
+        }
+
+        .btn-undo {
+            background-color: var(--danger-color);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            font-size: 0.8rem;
+            width: auto;
+            margin: 0;
+            border-radius: 4px;
         }
 
         /* Responsive cho điện thoại */
         @media (max-width: 768px) {
-            .main-layout {
+            .main-layout, .bottom-layout {
                 grid-template-columns: 1fr;
             }
             .tables-grid {
@@ -299,14 +317,22 @@
         </div>
     </div>
 
-    <div class="history-section">
-        <h3>Lịch sử doanh thu (Tối đa 30 ngày gần nhất)</h3>
-        <div class="history-list" id="history-container">
-            </div>
+    <div class="bottom-layout">
+        <div class="recent-bills-section">
+            <h3>Hóa đơn vừa thanh toán (Có thể hủy sửa sai)</h3>
+            <div class="scroll-list" id="recent-bills-container">
+                </div>
+        </div>
+
+        <div class="history-section">
+            <h3>Lịch sử doanh thu (Tối đa 30 ngày)</h3>
+            <div class="scroll-list" id="history-container">
+                </div>
+        </div>
     </div>
 
     <script>
-        // Toàn bộ dữ liệu Menu từ ảnh gốc của bạn và đã bổ sung Bò Húc
+        // Dữ liệu Menu gốc đầy đủ + Bò Húc
         const menuData = [
             { category: "CÀ PHÊ", items: [
                 { id: "cf_den_phin", name: "Cafe Đen (Phin)", price: 15000 },
@@ -335,7 +361,7 @@
                 { id: "khoang_sua", name: "Khoáng Sữa", price: 17000 },
                 { id: "sting_vang", name: "Sting Vàng", price: 16000 },
                 { id: "sting_dau", name: "Sting Dâu", price: 17000 },
-                { id: "bo_huc", name: "Bò Húc", price: 22000 } // <-- Đã thêm Bò Húc 22k thành công
+                { id: "bo_huc", name: "Bò Húc", price: 22000 }
             ]},
             { category: "TRÀ TRÁI CÂY", items: [
                 { id: "tra_chanh_dau", name: "Trà Chanh Dâu", price: 25000 },
@@ -358,8 +384,10 @@
         ];
 
         let currentTableId = null;
-        let tables = JSON.parse(localStorage.getItem('tino_tables_v3')) || {};
-        let revenueHistory = JSON.parse(localStorage.getItem('tino_revenue_history_v3')) || {};
+        // Sử dụng phiên bản lưu trữ v4 để tích hợp tính năng Hủy hóa đơn nhầm lẫn
+        let tables = JSON.parse(localStorage.getItem('tino_tables_v4')) || {};
+        let revenueHistory = JSON.parse(localStorage.getItem('tino_revenue_history_v4')) || {};
+        let recentBills = JSON.parse(localStorage.getItem('tino_recent_bills_v4')) || [];
 
         function getTodayString() {
             const d = new Date();
@@ -375,7 +403,7 @@
             for (let i = 1; i <= 25; i++) {
                 tables[i] = { orderList: [] };
             }
-            localStorage.setItem('tino_tables_v3', JSON.stringify(tables));
+            localStorage.setItem('tino_tables_v4', JSON.stringify(tables));
         }
 
         if (!revenueHistory[todayStr]) {
@@ -389,10 +417,11 @@
             initMenuSelect();
             updateRevenueDisplay();
             renderHistory();
+            renderRecentBills();
         });
 
         function saveTablesToStorage() {
-            localStorage.setItem('tino_tables_v3', JSON.stringify(tables));
+            localStorage.setItem('tino_tables_v4', JSON.stringify(tables));
         }
 
         function saveHistoryToStorage() {
@@ -407,7 +436,7 @@
                 delete revenueHistory[oldestDate];
             }
 
-            localStorage.setItem('tino_revenue_history_v3', JSON.stringify(revenueHistory));
+            localStorage.setItem('tino_revenue_history_v4', JSON.stringify(revenueHistory));
         }
 
         function renderTables() {
@@ -466,7 +495,7 @@
             });
 
             if (sortedDates.length === 0) {
-                container.innerHTML = `<div style="color:#aaa; padding: 10px; text-align:center;">Chưa có dữ liệu lịch sử</div>`;
+                container.innerHTML = `<div style="color:#aaa; padding: 10px; text-align:center;">Chưa có dữ liệu</div>`;
                 return;
             }
 
@@ -476,6 +505,33 @@
                 div.innerHTML = `
                     <span>📅 Ngày <strong>${date}</strong> ${date === todayStr ? '<small style="color:var(--active-color)">(Hôm nay)</small>' : ''}</span>
                     <span style="font-weight:bold; color:var(--primary-color);">${revenueHistory[date].toLocaleString('vi-VN')}đ</span>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // Tạo danh sách hiển thị các hóa đơn vừa thanh toán để có thể ấn Hủy sửa sai
+        function renderRecentBills() {
+            const container = document.getElementById("recent-bills-container");
+            container.innerHTML = "";
+
+            if (recentBills.length === 0) {
+                container.innerHTML = `<div style="color:#aaa; padding: 10px; text-align:center;">Chưa có hóa đơn nào vừa thanh toán</div>`;
+                return;
+            }
+
+            recentBills.forEach(bill => {
+                const div = document.createElement("div");
+                div.className = "bill-item";
+                div.innerHTML = `
+                    <div>
+                        <strong>Bàn ${bill.tableId}</strong> - <small style="color:#666;">${bill.time}</small><br>
+                        <small style="color:#888;">${bill.summary}</small>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span style="font-weight:bold; color:var(--danger-color);">${bill.total.toLocaleString('vi-VN')}đ</span>
+                        <button class="btn-undo" onclick="undoCheckout(${bill.id})">Hủy</button>
+                    </div>
                 `;
                 container.appendChild(div);
             });
@@ -588,8 +644,31 @@
             if (confirm(`Xác nhận thanh toán Bàn ${currentTableId}\nTổng tiền: ${total.toLocaleString('vi-VN')}đ?\nBàn sẽ tự động reset sau khi hoàn tất.`)) {
                 
                 const activeTodayStr = getTodayString();
+                const now = new Date();
+                const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+                
+                // Chuỗi tóm tắt món ăn để hiển thị ở mục Hủy sửa sai
+                const summaryStr = currentOrder.map(i => `${i.name}${i.isTakeAway?'(MĐ)':''}(x${i.qty})`).join(', ');
+
+                // Ghi vết hóa đơn vừa thanh toán vào top danh sách
+                recentBills.unshift({
+                    id: Date.now(),
+                    tableId: currentTableId,
+                    total: total,
+                    summary: summaryStr,
+                    time: timeStr,
+                    date: activeTodayStr,
+                    orderList: JSON.parse(JSON.stringify(currentOrder)) // copy sâu mảng món ăn
+                });
+
+                // Giới hạn chỉ giữ lại 15 hóa đơn vừa thanh toán gần nhất để tránh nặng bộ nhớ
+                if (recentBills.length > 15) recentBills.pop();
+                localStorage.setItem('tino_recent_bills_v4', JSON.stringify(recentBills));
+
+                // Cộng doanh thu ngày
                 revenueHistory[activeTodayStr] = (revenueHistory[activeTodayStr] || 0) + total;
                 
+                // Reset bàn về trống
                 tables[currentTableId].orderList = [];
                 
                 saveTablesToStorage();
@@ -598,10 +677,59 @@
                 updateRevenueDisplay();
                 renderTables();
                 renderHistory();
+                renderRecentBills();
                 
                 document.getElementById("order-title").textContent = "Vui lòng chọn bàn...";
                 document.getElementById("order-controls").style.display = "none";
                 currentTableId = null;
+            }
+        }
+
+        // HÀM SỬA SAI: Hủy hóa đơn đã thanh toán nhầm, trả ngược món về bàn
+        function undoCheckout(billId) {
+            const billIndex = recentBills.findIndex(b => b.id === billId);
+            if (billIndex === -1) return;
+            
+            const bill = recentBills[billIndex];
+            
+            if (confirm(`Bạn muốn HỦY hóa đơn nhầm lẫn này của BÀN ${bill.tableId}?\n\n- Doanh thu sẽ tự động trừ đi: ${bill.total.toLocaleString('vi-VN')}đ\n- Toàn bộ món ăn sẽ được trả ngược lại vào sơ đồ Bàn ${bill.tableId}.`)) {
+                
+                // 1. Trừ tiền khỏi doanh thu của ngày xuất hóa đơn đó
+                if (revenueHistory[bill.date]) {
+                    revenueHistory[bill.date] -= bill.total;
+                    if (revenueHistory[bill.date] < 0) revenueHistory[bill.date] = 0;
+                }
+
+                // 2. Trả ngược món ăn về bàn (Cộng dồn nếu bàn hiện đang có khách mới)
+                bill.orderList.forEach(oldItem => {
+                    const existingItem = tables[bill.tableId].orderList.find(i => i.id === oldItem.id && (i.isTakeAway || false) === (oldItem.isTakeAway || false));
+                    if (existingItem) {
+                        existingItem.qty += oldItem.qty; // Nếu trùng món trùng trạng thái mang đi thì cộng dồn số lượng
+                    } else {
+                        tables[bill.tableId].orderList.push(oldItem); // Nếu chưa có thì thêm mới dòng món
+                    }
+                });
+
+                // 3. Xóa hóa đơn này ra khỏi danh sách lịch sử sửa sai
+                recentBills.splice(billIndex, 1);
+
+                // 4. Đồng bộ lưu lại vào LocalStorage
+                localStorage.setItem('tino_recent_bills_v4', JSON.stringify(recentBills));
+                saveTablesToStorage();
+                saveHistoryToStorage();
+
+                // 5. Cập nhật lại toàn bộ giao diện app
+                updateRevenueDisplay();
+                renderTables();
+                renderHistory();
+                renderRecentBills();
+
+                // Nếu bạn đang mở đúng cái bàn vừa được hoàn tác, lập tức hiển thị lại món ăn lên khung hóa đơn
+                if (currentTableId === bill.tableId) {
+                    renderOrderList();
+                }
+
+                alert(`Đã hủy hóa đơn nhầm thành công!\nToàn bộ món ăn đã được trả về Bàn ${bill.tableId}.`);
             }
         }
     </script>
