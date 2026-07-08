@@ -53,7 +53,7 @@
             margin-top: 3px;
         }
 
-        /* THANH MENU TABS QUY HOẠCH 3 KHU VỰC MỚI */
+        /* THANH MENU TABS */
         .tab-bar {
             display: grid;
             grid-template-columns: 1fr 1.1fr 1fr;
@@ -234,11 +234,10 @@
             border-left: 4px solid var(--success-color);
         }
 
-        .bill-header { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 6px; }
+        .bill-header { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 6px; align-items: center; }
         .bill-details { font-size: 0.85rem; color: #555; padding-left: 5px; line-height: 1.4; }
         .btn-undo { background-color: var(--danger-color); color: white; border: none; padding: 5px 10px; font-size: 0.8rem; border-radius: 4px; cursor: pointer; font-weight: bold; }
 
-        /* Khung bộ lọc quản lý */
         .month-filter-box {
             display: flex;
             gap: 10px;
@@ -251,7 +250,6 @@
         }
         .month-filter-box select { width: auto; margin: 0; padding: 8px 30px 8px 10px; }
 
-        /* Grid hiển thị 3 chỉ số tổng kết mới cho chủ quán */
         .month-summary-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -316,14 +314,13 @@
         <span class="status-online" id="net-status">🌐 Đang kết nối dữ liệu đám mây...</span>
     </header>
 
-    <!-- THANH MENU 3 TABS QUY HOẠCH PHÂN QUYỀN MỚI -->
     <div class="tab-bar">
         <button id="nav-pos" class="tab-nav-btn active-tab-nav" onclick="switchTab('pos')">⚡ BÁN HÀNG</button>
         <button id="nav-today-bills" class="tab-nav-btn" onclick="switchTab('today-bills')">📋 ĐƠN TRONG NGÀY</button>
         <button id="nav-admin" class="tab-nav-btn" style="color:#d90429;" onclick="switchTab('admin')">🔒 QUẢN LÝ (CHỦ)</button>
     </div>
 
-    <!-- TAB 1: MÀN HÌNH BÁN HÀNG CHÍNH (NHÂN VIÊN) -->
+    <!-- TAB 1: MÀN HÌNH BÁN HÀNG CHÍNH -->
     <div id="tab-pos" class="tab-content active-tab-view">
         <div class="main-layout">
             <div class="tables-section">
@@ -345,6 +342,13 @@
                     </div>
                     <h4 style="margin-top: 10px;">Món đã gọi:</h4>
                     <div class="order-list" id="current-order-list"></div>
+                    
+                    <!-- NÚT TÍCH CHỌN CHUYỂN KHOẢN KHI KHÁCH THANH TOÁN (MỚI THÊM) -->
+                    <div class="takeaway-option" id="bank-transfer-box" style="background-color: #e6f7ff; border-color: #1890ff; margin-bottom:12px;" onclick="toggleBankCheckbox(event)">
+                        <input type="checkbox" id="payment-method-checkbox">
+                        <label for="payment-method-checkbox" style="color: #0050b3; font-weight: bold;">💳 Khách CHUYỂN KHOẢN / QUÉT MÃ</label>
+                    </div>
+
                     <div class="checkout-box">
                         <div class="total-price">Tổng cộng: <span id="table-total">0</span>đ</div>
                         <button class="btn-action btn-pay" onclick="checkoutTable()">Thanh Toán & Trả Bàn</button>
@@ -354,18 +358,35 @@
         </div>
     </div>
 
-    <!-- TAB 2: KHU VỰC XEM LỊCH SỬ GỌI MÓN TRONG NGÀY (CÔNG KHAI CHO NHÂN VIÊN SỬA SAI) -->
+    <!-- TAB 2: KHU VỰC XEM ĐƠN TRONG NGÀY VÀ QUẢN LÝ KÉT TIỀN CỦA NHÂN VIÊN -->
     <div id="tab-today-bills" class="tab-content">
+        <!-- KHỐI QUẢN LÝ KÉT TIỀN THỰC TẾ TRONG NGÀY (MỚI NÂNG CẤP) -->
+        <div class="card-view" style="background:#f0f5ff; border-left:5px solid #1890ff; padding:15px; border-radius:8px;">
+            <h4 style="color:#0050b3; margin-bottom:12px; font-size:1.05rem;">🎛️ Báo Cáo Tiền Mặt & Két Tiền Ca Trực</h4>
+            <div style="margin-bottom:12px;">
+                <label style="font-weight:bold; font-size:0.9rem; display:block;">Nhập số tiền mặt đầu ca/vốn có hiện tại (đ):</label>
+                <input type="number" id="initial-cash-input" placeholder="Ví dụ: 500000" onchange="updateInitialCash()" style="width:100%; padding:10px; margin-top:5px; border-radius:6px; border:1px solid #ccc; font-weight:bold; font-size:1.05rem; color:var(--dark-color);">
+            </div>
+            <div style="font-size:0.95rem; line-height:1.7; margin-top:10px; border-top:1px dashed #ccc; padding-top:10px;">
+                • Doanh thu tiền mặt đã thu hôm nay: <span id="today-cash-revenue" style="font-weight:bold; color:var(--primary-color);">0</span>đ<br>
+                <div style="font-size:1.15rem; font-weight:bold; color:#2a9d8f; margin:8px 0; background:white; padding:8px; border-radius:5px; border:1px solid #e0e0e0;">
+                    ➡ TỔNG TIỀN MẶT THỰC TẾ TRONG KÉT: <span id="total-cash-in-drawer">0</span>đ
+                </div>
+                <div style="font-size:1rem; font-weight:bold; color:#0050b3; margin-top:8px; padding-left:2px;">
+                    💳 Tiền thanh toán chuyển khoản: <span id="today-bank-revenue">0</span>đ
+                </div>
+            </div>
+        </div>
+
         <div class="card-view">
             <h3>Hóa đơn đã thanh toán hôm nay</h3>
-            <p style="font-size:0.8rem; color:#666; margin-top:2px; margin-bottom:8px;">Nhân viên kiểm tra hóa đơn, nếu ấn nhầm hãy bấm nút <strong>Hủy</strong> để trả món lại về bàn cũ.</p>
             <div class="scroll-list" id="today-bills-container">
-                <!-- Chỉ hiện hóa đơn hôm nay tại đây -->
+                <!-- Danh sách hóa đơn ngày đổ tại đây -->
             </div>
         </div>
     </div>
 
-    <!-- TAB 3: KHU VỰC QUẢN LÝ NHẠY CẢM (BẢO MẬT BẰNG MẬT KHẨU CHO CHỦ) -->
+    <!-- TAB 3: KHU VỰC QUẢN LÝ RIÊNG CỦA CHỦ QUÁN -->
     <div id="tab-admin" class="tab-content">
         <div class="month-filter-box">
             <label style="font-weight:bold;">📅 Chọn Tháng Đối Soát:</label>
@@ -374,7 +395,6 @@
             </select>
         </div>
 
-        <!-- 3 CỘT CHỈ SỐ: ĐÃ BỔ SUNG SỐ LƯỢNG MANG ĐI -->
         <div class="month-summary-grid">
             <div class="summary-mini-card" style="color:var(--primary-color);">
                 <div>Doanh Thu</div>
@@ -409,6 +429,7 @@
     </div>
 
     <script>
+        // Bản cấu hình mây Firebase Realtime chính thức của TINO COFFEE
         const firebaseConfig = {
             apiKey: "AIzaSyClUxh49lSWRbOj_tZvU-BAWmUHZDRhTYE",
             authDomain: "tino-coffee.firebaseapp.com",
@@ -456,9 +477,10 @@
         let tables = {};
         let revenueHistory = {};
         let recentBills = [];
+        let initialCash = 0; // Số tiền két ban đầu
         let currentTableId = null;
         let isDemandExpanded = false; 
-        let isAdminAuthenticated = false; // Trạng thái khóa bảo mật chủ quán
+        let isAdminAuthenticated = false; 
 
         function getTodayString() {
             const d = new Date();
@@ -466,6 +488,7 @@
         }
         const todayStr = getTodayString();
 
+        // LẮNG NGHE ĐỒNG BỘ ĐÁM MÂY REALTIME
         db.ref('tino_coffee_store').on('value', (snapshot) => {
             const data = snapshot.val() || {};
             
@@ -496,12 +519,18 @@
                 recentBills = [];
             }
 
+            // Đồng bộ số tiền mặt đầu ca (Tránh giật tiêu điểm khi nhân viên đang nhập)
+            initialCash = data.initialCash || 0;
+            if (document.activeElement !== document.getElementById("initial-cash-input")) {
+                document.getElementById("initial-cash-input").value = initialCash;
+            }
+
             document.getElementById("net-status").textContent = "💚 Đám mây đồng bộ trực tuyến";
             document.getElementById("net-status").style.color = "#2ec4b6";
             
             renderTables();
             updateRevenueDisplay();
-            renderTodayBillsOnly(); // Vẽ lịch sử gọi món công khai cho nhân viên
+            renderTodayBillsOnly(); 
             buildMonthDropdownOptions(); 
             renderFilteredStats(); 
             if (currentTableId) renderOrderList();
@@ -514,8 +543,14 @@
             db.ref('tino_coffee_store').set({
                 tables: tables,
                 revenueHistory: revenueHistory,
-                recentBills: recentBills
+                recentBills: recentBills,
+                initialCash: initialCash
             });
+        }
+
+        function updateInitialCash() {
+            initialCash = parseInt(document.getElementById("initial-cash-input").value) || 0;
+            pushDataToCloud();
         }
 
         document.addEventListener("DOMContentLoaded", () => {
@@ -523,13 +558,11 @@
             initMenuSelect();
         });
 
-        // BẢO MẬT: Hàm chặn và kiểm tra mật khẩu chủ quán khi bấm vào Tab Quản lý
         function switchTab(tabName) {
             if (tabName === 'admin' && !isAdminAuthenticated) {
                 let pinInput = prompt("🔑 Vui lòng nhập mật khẩu Quản lý để xem dữ liệu nhạy cảm:");
                 if (pinInput === '472005') {
                     isAdminAuthenticated = true;
-                    // Hiện khung doanh thu trên header khi chủ đăng nhập thành công
                     document.getElementById("revenue-title-area").style.display = "block";
                 } else {
                     alert("❌ Mật khẩu sai! Quyền truy cập bị từ chối.");
@@ -554,13 +587,28 @@
             }
         }
 
-        // TAB NHÂN VIÊN: Chỉ hiển thị các hóa đơn nước gọi bán được trong ngày hôm nay
+        // TAB NHÂN VIÊN: Tính toán và phân bổ Két Tiền mặt & Chuyển khoản riêng
         function renderTodayBillsOnly() {
             const container = document.getElementById("today-bills-container");
             if (!container) return;
             container.innerHTML = "";
 
             let todayBills = recentBills.filter(bill => bill.date === todayStr);
+
+            // Thuật toán tính doanh thu tiền mặt và ngân hàng hôm nay
+            let cashRevenue = 0;
+            let bankRevenue = 0;
+            todayBills.forEach(b => {
+                if (b.paymentMethod === "chuyen_khoan") bankRevenue += b.total;
+                else cashRevenue += b.total;
+            });
+
+            // Cập nhật số lên bảng két tiền mặt của ca trực
+            document.getElementById("today-cash-revenue").textContent = cashRevenue.toLocaleString('vi-VN');
+            document.getElementById("today-bank-revenue").textContent = bankRevenue.toLocaleString('vi-VN') + "đ";
+            
+            let parsedInitial = parseInt(initialCash) || 0;
+            document.getElementById("total-cash-in-drawer").textContent = (parsedInitial + cashRevenue).toLocaleString('vi-VN');
 
             if (todayBills.length === 0) {
                 container.innerHTML = `<div style="color:#aaa; text-align:center; padding:10px;">Chưa phục vụ bàn nào hôm nay</div>`;
@@ -571,12 +619,17 @@
                 const div = document.createElement("div"); div.className = "bill-item";
                 let itemsDetailHTML = bill.orderList.map(i => `• ${i.name}${i.isTakeAway?' (Mang đi)':''} x${i.qty}`).join('<br>');
                 
+                // Nhãn hiển thị hình thức trả tiền
+                let methodText = bill.paymentMethod === "chuyen_khoan" ? "💳 Chuyển khoản" : "💵 Tiền mặt";
+                let methodColor = bill.paymentMethod === "chuyen_khoan" ? "#0050b3" : "#6F4E37";
+
                 div.innerHTML = `
                     <div class="bill-header">
                         <span>Bàn ${bill.tableId} <small style="color:#666; font-weight:normal;">(${bill.time})</small></span>
-                        <button class="btn-undo" onclick="undoCheckout('${bill.id}')">Hủy chọn nhầm</button>
+                        <span style="font-size:0.75rem; padding:3px 8px; background:#f0f0f0; border-radius:4px; color:${methodColor}; font-weight:bold;">${methodText}</span>
+                        <button class="btn-undo" onclick="undoCheckout('${bill.id}')">Hủy</button>
                     </div>
-                    <div class="bill-details" style="color: var(--dark-color); font-weight: 500;">
+                    <div class="bill-details" style="color: var(--dark-color); font-weight: 500; margin-top:5px;">
                         ${itemsDetailHTML}
                     </div>
                 `;
@@ -617,7 +670,6 @@
             else select.value = currentMonthYearStr;
         }
 
-        // TAB QUẢN LÝ: Tính toán chỉ số doanh thu, tổng nước và tổng số lượng mang đi
         function renderFilteredStats() {
             if (!isAdminAuthenticated) return;
             const targetMonthYear = document.getElementById("report-month-select").value;
@@ -632,7 +684,6 @@
             let totalMoney = filteredBills.reduce((sum, b) => sum + b.total, 0);
             document.getElementById("month-total-money").textContent = totalMoney.toLocaleString('vi-VN') + "đ";
 
-            // TÍNH TOÁN: Gom số lượng tổng món và lượng mang đi tiêu thụ
             let totalItemsCount = 0;
             let totalTakeawayCount = 0;
             let itemDemandDict = {}; 
@@ -641,9 +692,7 @@
                 if (bill.orderList) {
                     bill.orderList.forEach(item => {
                         totalItemsCount += item.qty;
-                        if (item.isTakeAway) {
-                            totalTakeawayCount += item.qty; // Cộng dồn số phần mang đi
-                        }
+                        if (item.isTakeAway) totalTakeawayCount += item.qty;
                         itemDemandDict[item.name] = (itemDemandDict[item.name] || 0) + item.qty;
                     });
                 }
@@ -653,7 +702,6 @@
 
             let sortedDemandArr = Object.entries(itemDemandDict).sort((a, b) => b[1] - a[1]);
 
-            // Đổ bảng phân tích nhu cầu rút gọn Top 3 chống tràn màn hình
             const demandContainer = document.getElementById("item-demand-container");
             demandContainer.innerHTML = "";
             if (sortedDemandArr.length === 0) {
@@ -679,7 +727,6 @@
                 }
             }
 
-            // Đổ toàn bộ danh sách hóa đơn tháng cho chủ quán xem tiền cụ thể
             const billsContainer = document.getElementById("all-month-bills-container");
             billsContainer.innerHTML = "";
             if (filteredBills.length === 0) {
@@ -688,9 +735,11 @@
                 filteredBills.forEach(bill => {
                     const div = document.createElement("div"); div.className = "bill-item";
                     let itemsDetailHTML = bill.orderList.map(i => `• ${i.name}${i.isTakeAway?' (Mang đi)':''} x${i.qty} - ${(i.price*i.qty).toLocaleString('vi-VN')}đ`).join('<br>');
+                    let methodLabel = bill.paymentMethod === "chuyen_khoan" ? "[CK]" : "[TM]";
+                    
                     div.innerHTML = `
                         <div class="bill-header">
-                            <span>Bàn ${bill.tableId} <small style="color:#666; font-weight:normal;">(${bill.date.replace(/-/g, '/')} ${bill.time})</small></span>
+                            <span>Bàn ${bill.tableId} <small style="color:#666; font-weight:normal;">(${bill.date.replace(/-/g, '/')} ${bill.time}) ${methodLabel}</small></span>
                         </div>
                         <div class="bill-details">
                             ${itemsDetailHTML}
@@ -701,7 +750,6 @@
                 });
             }
 
-            // Đổ lịch sử doanh thu từng ngày
             const historyContainer = document.getElementById("history-container");
             historyContainer.innerHTML = "";
             const sortedDates = Object.keys(revenueHistory).sort((a, b) => {
@@ -790,6 +838,9 @@
         }
 
         function toggleCheckbox(e) { if (e.target.tagName !== 'INPUT') { const cb = document.getElementById("takeaway-checkbox"); cb.checked = !cb.checked; } }
+        
+        // Helper tích chọn nhanh phương thức ngân hàng
+        function toggleBankCheckbox(e) { if (e.target.tagName !== 'INPUT') { const cb = document.getElementById("payment-method-checkbox"); cb.checked = !cb.checked; } }
 
         function addItemToTable() {
             if (!currentTableId) return;
@@ -815,24 +866,37 @@
             pushDataToCloud(); 
         }
 
+        // HÀM THANH TOÁN: Đóng gói gắn nhãn phương thức thanh toán đẩy lên đám mây
         function checkoutTable() {
             if (!currentTableId) return;
             const currentOrder = tables[currentTableId].orderList;
             if (!currentOrder || currentOrder.length === 0) { alert("Bàn này trống!"); return; }
             let total = currentOrder.reduce((sum, item) => sum + (item.price * item.qty), 0);
             
-            if (confirm(`Xác nhận thanh toán Bàn ${currentTableId}\nTổng: ${total.toLocaleString('vi-VN')}đ?`)) {
+            // Đọc trạng thái nút tích chuyển khoản
+            const isBankTransfer = document.getElementById("payment-method-checkbox").checked;
+            const finalMethod = isBankTransfer ? "chuyen_khoan" : "tien_mat";
+            let confirmMsg = isBankTransfer ? "thanh toán CHUYỂN KHOẢN" : "thanh toán TIỀN MẶT";
+
+            if (confirm(`Xác nhận ${confirmMsg} Bàn ${currentTableId}\nTổng: ${total.toLocaleString('vi-VN')}đ?`)) {
                 const activeTodayStr = getTodayString(); const now = new Date();
                 const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
                 
                 recentBills.unshift({
-                    id: 'bill_' + Date.now(), tableId: currentTableId, total: total, time: timeStr, date: activeTodayStr,
+                    id: 'bill_' + Date.now(), 
+                    tableId: currentTableId, 
+                    total: total, 
+                    time: timeStr, 
+                    date: activeTodayStr,
+                    paymentMethod: finalMethod, // Lưu nhãn thanh toán
                     orderList: JSON.parse(JSON.stringify(currentOrder))
                 });
 
                 revenueHistory[activeTodayStr] = (revenueHistory[activeTodayStr] || 0) + total;
                 tables[currentTableId].orderList = [];
                 
+                // Trả ô tích chọn về mặc định ban đầu
+                document.getElementById("payment-method-checkbox").checked = false;
                 document.getElementById("order-title").textContent = "Vui lòng chọn bàn...";
                 document.getElementById("order-controls").style.display = "none";
                 currentTableId = null;
@@ -877,7 +941,13 @@
 
             let itemDemandDict = {};
             let totalTakeaway = 0;
+            let totalCash = 0;
+            let totalBank = 0;
+
             filteredBills.forEach(bill => {
+                if (bill.paymentMethod === "chuyen_khoan") totalBank += bill.total;
+                else totalCash += bill.total;
+
                 if (bill.orderList) {
                     bill.orderList.forEach(item => {
                         itemDemandDict[item.name] = (itemDemandDict[item.name] || 0) + item.qty;
@@ -891,9 +961,10 @@
             let reportWindow = window.open('', '_blank');
             let billsHTML = filteredBills.map((bill) => {
                 let itemsText = bill.orderList.map(i => `  + ${i.name}${i.isTakeAway?'(MĐ)':''} x${i.qty} - ${(i.price*i.qty).toLocaleString('vi-VN')}đ`).join('<br>');
+                let mLabel = bill.paymentMethod === "chuyen_khoan" ? "Chuyển khoản" : "Tiền mặt";
                 return `
                     <div style="margin-bottom: 10px; border-bottom: 1px dashed #ccc; padding-bottom: 6px;">
-                        <strong>Bàn ${bill.tableId} (${bill.date.replace(/-/g, '/')} ${bill.time})</strong><br>
+                        <strong>Bàn ${bill.tableId} (${bill.date.replace(/-/g, '/')} ${bill.time}) [${mLabel}]</strong><br>
                         ${itemsText}<br>
                         <div style="text-align: right;">Tiền bàn: <strong>${bill.total.toLocaleString('vi-VN')}đ</strong></div>
                     </div>
@@ -917,7 +988,10 @@
                     <h3>BÁO CÁO DOANH THU THÁNG</h3>
                     <p class="text-center">Kỳ đối soát: Tháng ${targetMonthYear.replace('-', '/')}</p>
                     <div class="hr-double"></div>
-                    <p class="total-summary">TỔNG DOANH THU THÁNG: ${document.getElementById("month-total-money").textContent}</p>
+                    <p class="total-summary">TỔNG DOANH THU: ${totalMoney.toLocaleString('vi-VN')}đ</p>
+                    <p style="padding-left:10px;">• Tiền mặt thu được:  <strong>${totalCash.toLocaleString('vi-VN')}đ</strong></p>
+                    <p style="padding-left:10px;">• Ngân hàng nhận CK: <strong>${totalBank.toLocaleString('vi-VN')}đ</strong></p>
+                    <div class="hr-double"></div>
                     <p>Tổng số món nước đã bán: <strong>${document.getElementById("month-total-items").textContent} phần</strong></p>
                     <p>Số lượng ly mua mang đi: <strong>${totalTakeaway} phần</strong></p>
                     <div class="hr-double"></div>
