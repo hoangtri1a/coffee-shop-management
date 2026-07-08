@@ -106,6 +106,31 @@
             margin-bottom: 15px;
         }
 
+        .takeaway-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 12px 0;
+            padding: 5px;
+            background-color: #fff5e6;
+            border-radius: 6px;
+            border: 1px dashed var(--active-color);
+            cursor: pointer;
+        }
+
+        .takeaway-option input {
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+        }
+
+        .takeaway-option label {
+            font-weight: bold;
+            color: var(--dark-color);
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+
         select, button {
             width: 100%;
             padding: 12px;
@@ -124,6 +149,7 @@
             background-color: var(--primary-color);
             color: white;
             border: none;
+            margin-top: 5px;
         }
 
         /* Danh sách món ăn trong bàn */
@@ -142,6 +168,17 @@
             align-items: center;
             padding: 8px 0;
             border-bottom: 1px solid #eee;
+        }
+
+        .badge-takeaway {
+            background-color: var(--danger-color);
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 5px;
+            display: inline-block;
+            vertical-align: middle;
         }
 
         .item-controls {
@@ -227,15 +264,12 @@
     </header>
 
     <div class="main-layout">
-        <!-- KHU VỰC CHỌN BÀN -->
         <div class="tables-section">
             <h3>Sơ đồ bàn (25 bàn)</h3>
             <div class="tables-grid" id="tables-container">
-                <!-- 25 bàn tự động sinh ở đây -->
-            </div>
+                </div>
         </div>
 
-        <!-- KHU VỰC GỌI MÓN & THANH TOÁN -->
         <div class="order-section">
             <h3 id="order-title">Vui lòng chọn bàn...</h3>
             
@@ -243,15 +277,19 @@
                 <div class="menu-selector">
                     <label for="menu-select">Chọn món ăn/nước uống:</label>
                     <select id="menu-select">
-                        <!-- Menu tự động đổ vào -->
-                    </select>
+                        </select>
+                    
+                    <div class="takeaway-option" onclick="toggleCheckbox(event)">
+                        <input type="checkbox" id="takeaway-checkbox">
+                        <label for="takeaway-checkbox">🥡 Mua mang đi (Take-away)</label>
+                    </div>
+
                     <button class="btn-add" onclick="addItemToTable()">Thêm món vào bàn</button>
                 </div>
 
                 <h4>Món đã gọi:</h4>
                 <div class="order-list" id="current-order-list">
-                    <!-- Danh sách món hiển thị tại đây -->
-                </div>
+                    </div>
 
                 <div class="checkout-box">
                     <div class="total-price">Tổng cộng: <span id="table-total">0</span>đ</div>
@@ -261,12 +299,10 @@
         </div>
     </div>
 
-    <!-- KHU VỰC LỊCH SỬ DOANH THU 30 NGÀY -->
     <div class="history-section">
         <h3>Lịch sử doanh thu (Tối đa 30 ngày gần nhất)</h3>
         <div class="history-list" id="history-container">
-            <!-- Dữ liệu lịch sử sẽ đổ vào đây -->
-        </div>
+            </div>
     </div>
 
     <script>
@@ -321,8 +357,8 @@
         ];
 
         let currentTableId = null;
-        let tables = JSON.parse(localStorage.getItem('tino_tables_v2')) || {};
-        let revenueHistory = JSON.parse(localStorage.getItem('tino_revenue_history_v2')) || {};
+        let tables = JSON.parse(localStorage.getItem('tino_tables_v3')) || {};
+        let revenueHistory = JSON.parse(localStorage.getItem('tino_revenue_history_v3')) || {};
 
         // Lấy chuỗi ngày hiện tại dạng DD/MM/YYYY
         function getTodayString() {
@@ -340,7 +376,7 @@
             for (let i = 1; i <= 25; i++) {
                 tables[i] = { orderList: [] };
             }
-            localStorage.setItem('tino_tables_v2', JSON.stringify(tables));
+            localStorage.setItem('tino_tables_v3', JSON.stringify(tables));
         }
 
         // Đảm bảo ngày hôm nay có mặt trong sơ đồ lịch sử doanh thu
@@ -358,24 +394,22 @@
         });
 
         function saveTablesToStorage() {
-            localStorage.setItem('tino_tables_v2', JSON.stringify(tables));
+            localStorage.setItem('tino_tables_v3', JSON.stringify(tables));
         }
 
         function saveHistoryToStorage() {
-            // Rà soát cấu trúc sắp xếp và giới hạn chỉ lấy tối đa 30 ngày gần nhất
             const sortedDates = Object.keys(revenueHistory).sort((a, b) => {
                 const partsA = a.split('/');
                 const partsB = b.split('/');
                 return new Date(partsB[2], partsB[1] - 1, partsB[0]) - new Date(partsA[2], partsA[1] - 1, partsA[0]);
             });
 
-            // Nếu vượt quá 30 ngày, tiến hành xóa bớt ngày cũ nhất khỏi bộ nhớ cục bộ
             while (sortedDates.length > 30) {
                 const oldestDate = sortedDates.pop();
                 delete revenueHistory[oldestDate];
             }
 
-            localStorage.setItem('tino_revenue_history_v2', JSON.stringify(revenueHistory));
+            localStorage.setItem('tino_revenue_history_v3', JSON.stringify(revenueHistory));
         }
 
         function renderTables() {
@@ -426,7 +460,6 @@
             const container = document.getElementById("history-container");
             container.innerHTML = "";
 
-            // Sắp xếp ngày mới nhất lên đầu danh sách hiển thị
             const sortedDates = Object.keys(revenueHistory).sort((a, b) => {
                 const partsA = a.split('/');
                 const partsB = b.split('/');
@@ -477,7 +510,7 @@
                 div.className = "order-item";
                 div.innerHTML = `
                     <div>
-                        <strong>${item.name}</strong><br>
+                        <strong>${item.name}${item.isTakeAway ? '<span class="badge-takeaway">Mang đi</span>' : ''}</strong><br>
                         <small style="color:#666">${item.price.toLocaleString('vi-VN')}đ</small>
                     </div>
                     <div class="item-controls">
@@ -493,13 +526,24 @@
             document.getElementById("table-total").textContent = total.toLocaleString('vi-VN');
         }
 
+        function toggleCheckbox(e) {
+            if (e.target.tagName !== 'INPUT') {
+                const cb = document.getElementById("takeaway-checkbox");
+                cb.checked = !cb.checked;
+            }
+        }
+
         function addItemToTable() {
             if (!currentTableId) return;
 
             const select = document.getElementById("menu-select");
             const itemInfo = JSON.parse(select.value);
+            const isTakeAway = document.getElementById("takeaway-checkbox").checked;
+            
             const currentOrder = tables[currentTableId].orderList;
-            const existingItem = currentOrder.find(i => i.id === itemInfo.id);
+            
+            // Tìm món trùng ID VÀ trùng trạng thái Mang đi/Tại chỗ
+            const existingItem = currentOrder.find(i => i.id === itemInfo.id && (i.isTakeAway || false) === isTakeAway);
 
             if (existingItem) {
                 existingItem.qty += 1;
@@ -508,9 +552,13 @@
                     id: itemInfo.id,
                     name: itemInfo.name,
                     price: itemInfo.price,
-                    qty: 1
+                    qty: 1,
+                    isTakeAway: isTakeAway
                 });
             }
+
+            // Reset ô chọn mang đi về mặc định sau khi thêm món thành công
+            document.getElementById("takeaway-checkbox").checked = false;
 
             saveTablesToStorage();
             renderTables();
@@ -543,13 +591,9 @@
             
             if (confirm(`Xác nhận thanh toán Bàn ${currentTableId}\nTổng tiền: ${total.toLocaleString('vi-VN')}đ?\nBàn sẽ tự động reset sau khi hoàn tất.`)) {
                 
-                // Lấy lại chuỗi ngày chính xác tại thời điểm bấm thanh toán đề phòng trường hợp vắt qua đêm
                 const activeTodayStr = getTodayString();
-                
-                // Cộng dồn thẳng vào ngày đó trong lịch sử dữ liệu
                 revenueHistory[activeTodayStr] = (revenueHistory[activeTodayStr] || 0) + total;
                 
-                // Đưa trạng thái bàn về rỗng
                 tables[currentTableId].orderList = [];
                 
                 saveTablesToStorage();
