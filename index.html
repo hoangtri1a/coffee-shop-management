@@ -222,7 +222,7 @@
         }
 
         .scroll-list { margin-top: 10px; max-height: 400px; overflow-y: auto; }
-        .history-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; }
+        .history-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; align-items: center; }
         .history-item:nth-child(even) { background-color: #fcfbfa; }
 
         .bill-item {
@@ -333,10 +333,9 @@
         </div>
     </div>
 
-    <!-- TAB 2: MÀN HÌNH THỐNG KÊ THEO LỊCH THÁNG DƯƠNG LỊCH CỤ THỂ -->
+    <!-- TAB 2: MÀN HÌNH THỐNG KÊ THEO LỊCH THÁNG -->
     <div id="tab-stats" class="tab-content">
         
-        <!-- KHUNG BỘ LỌC THÁNG LỊCH TRỰC QUAN -->
         <div class="month-filter-box">
             <label style="font-weight:bold;">📅 Chọn Tháng Đối Soát:</label>
             <select id="report-month-select" onchange="onMonthFilterChange()">
@@ -344,19 +343,27 @@
             </select>
         </div>
 
-        <!-- THẺ THÔNG SỐ TỔNG KẾT THEO THÁNG -->
+        <!-- SỬA ĐỔI CHỈ SỐ: Đổi số bàn thành SỐ MÓN ĐÃ GỌI -->
         <div class="month-summary-grid">
             <div class="summary-mini-card" style="color:var(--primary-color);">
                 <div>Doanh Thu Tháng</div>
                 <span id="month-total-money" style="font-size:1.3rem;">0</span>đ
             </div>
             <div class="summary-mini-card" style="color:var(--dark-color);">
-                <div>Tổng Số Bàn Đã Bán</div>
-                <span id="month-total-bills" style="font-size:1.3rem;">0</span> bàn
+                <div>Tổng Số Món Đã Gọi</div>
+                <span id="month-total-items" style="font-size:1.3rem;">0</span> món
             </div>
         </div>
 
         <button class="btn-print-report" onclick="printFilteredReport()">🖨️ XUẤT BÁO CÁO THỜI GIAN ĐANG CHỌN</button>
+
+        <!-- KHU VỰC THỐNG KÊ CHI TIẾT TẦN SUẤT GỌI MÓN (MỚI THÊM) -->
+        <div class="card-view">
+            <h3>📊 Thống kê lượng tiêu thụ món (Nhu cầu khách hàng)</h3>
+            <div class="scroll-list" id="item-demand-container">
+                <!-- Danh sách xếp hạng món ăn đổ vào đây -->
+            </div>
+        </div>
 
         <div class="card-view">
             <h3>Danh sách hóa đơn chi tiết trong tháng</h3>
@@ -424,7 +431,6 @@
         }
         const todayStr = getTodayString();
 
-        // LẮNG NGHE ĐỒNG BỘ DỮ LIỆU ĐÁM MÂY
         db.ref('tino_coffee_store').on('value', (snapshot) => {
             const data = snapshot.val() || {};
             
@@ -444,7 +450,6 @@
             revenueHistory = data.revenueHistory || {};
             if (!revenueHistory[todayStr]) revenueHistory[todayStr] = 0;
             
-            // Nhận tất cả hóa đơn không giới hạn thời gian cũ
             if (data.recentBills) {
                 recentBills = Array.isArray(data.recentBills) ? data.recentBills : Object.values(data.recentBills);
                 recentBills.forEach(bill => {
@@ -461,8 +466,8 @@
             
             renderTables();
             updateRevenueDisplay();
-            buildMonthDropdownOptions(); // Tự động sinh danh sách tháng đối soát
-            renderFilteredStats(); // Làm mới giao diện thống kê theo tháng đang chọn
+            buildMonthDropdownOptions(); 
+            renderFilteredStats(); 
             if (currentTableId) renderOrderList();
         }, (error) => {
             document.getElementById("net-status").textContent = "❌ Lỗi kết nối đám mây!";
@@ -482,15 +487,11 @@
             initMenuSelect();
         });
 
-        // TỰ ĐỘNG SINH DANH SÁCH CÁC THÁNG CÓ DỮ LIỆU ĐỂ LỌC
         function buildMonthDropdownOptions() {
             const select = document.getElementById("report-month-select");
-            const currentSelected = select.value; // Giữ lại lựa chọn cũ khi đám mây cập nhật
-            
-            // Tìm trọn vẹn tất cả các cặp tháng-năm xuất hiện trong dữ liệu hóa đơn
+            const currentSelected = select.value; 
             let monthsSet = new Set();
             
-            // Mặc định luôn add tháng hiện tại vào danh sách chọn
             const d = new Date();
             const currentMonthYearStr = `${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
             monthsSet.add(currentMonthYearStr);
@@ -504,7 +505,6 @@
                 }
             });
 
-            // Sắp xếp các tháng từ mới nhất xuống cũ nhất
             let sortedMonths = Array.from(monthsSet).sort((a, b) => {
                 let pA = a.split('-'); let pB = b.split('-');
                 return new Date(pB[1], pB[0]-1) - new Date(pA[1], pA[0]-1);
@@ -525,27 +525,63 @@
             }
         }
 
-        // HÀM LỌC VÀ HIỂN THỊ DỮ LIỆU THEO THÁNG CỤ THỂ
+        // THAY ĐỔI LỚN: TÍNH TỔNG SỐ MÓN VÀ GOM NHÓM XẾP HẠNG NHU CẦU KHÁCH HÀNG
         function renderFilteredStats() {
             const targetMonthYear = document.getElementById("report-month-select").value;
             if (!targetMonthYear) return;
 
-            // 1. Lọc hóa đơn thuộc tháng đang chọn
             let filteredBills = recentBills.filter(bill => {
                 if (!bill.date) return false;
                 let parts = bill.date.split('-');
                 return `${parts[1]}-${parts[2]}` === targetMonthYear;
             });
 
-            // 2. Tính tổng tiền mặt và số lượng bàn của tháng đó
             let totalMoney = filteredBills.reduce((sum, b) => sum + b.total, 0);
             document.getElementById("month-total-money").textContent = totalMoney.toLocaleString('vi-VN');
-            document.getElementById("month-total-bills").textContent = filteredBills.length;
 
-            // 3. Đổ danh sách hóa đơn chi tiết vào khung nhìn
+            // Tính tổng số món nước đã gọi và cộng dồn tần suất gọi từng món
+            let totalItemsCount = 0;
+            let itemDemandDict = {}; // { "Tên món": số_lượng }
+
+            filteredBills.forEach(bill => {
+                if (bill.orderList) {
+                    bill.orderList.forEach(item => {
+                        totalItemsCount += item.qty;
+                        let key = item.name;
+                        itemDemandDict[key] = (itemDemandDict[key] || 0) + item.qty;
+                    });
+                }
+            });
+            document.getElementById("month-total-items").textContent = totalItemsCount;
+
+            // Sắp xếp danh sách lượng tiêu thụ từ cao xuống thấp (Món chạy nhất lên đầu)
+            let sortedDemandArr = Object.entries(itemDemandDict).sort((a, b) => b[1] - a[1]);
+
+            // Đổ dữ liệu phân tích nhu cầu vào giao diện
+            const demandContainer = document.getElementById("item-demand-container");
+            demandContainer.innerHTML = "";
+            if (sortedDemandArr.length === 0) {
+                demandContainer.innerHTML = `<div style="color:#aaa; text-align:center; padding:10px;">Chưa có dữ liệu tiêu thụ món</div>`;
+            } else {
+                sortedDemandArr.forEach(([name, qty], index) => {
+                    const div = document.createElement("div"); div.className = "history-item";
+                    // Làm nổi bật Top 3 món chạy nhất bằng biểu tượng huy chương
+                    let rankIcon = "🥤";
+                    if (index === 0) rankIcon = "🥇";
+                    if (index === 1) rankIcon = "🥈";
+                    if (index === 2) rankIcon = "🥉";
+
+                    div.innerHTML = `
+                        <span>${rankIcon} <strong>${name}</strong></span>
+                        <span style="font-weight:bold; color:var(--primary-color);">${qty} phần</span>
+                    `;
+                    demandContainer.appendChild(div);
+                });
+            }
+
+            // Đổ danh sách hóa đơn chi tiết
             const billsContainer = document.getElementById("recent-bills-container");
             billsContainer.innerHTML = "";
-            
             if (filteredBills.length === 0) {
                 billsContainer.innerHTML = `<div style="color:#aaa; text-align:center; padding:10px;">Tháng này chưa phát sinh hóa đơn</div>`;
             } else {
@@ -567,10 +603,9 @@
                 });
             }
 
-            // 4. Đổ danh sách doanh thu tổng theo từng ngày trong tháng đó
+            // Đổ lịch sử doanh thu từng ngày
             const historyContainer = document.getElementById("history-container");
             historyContainer.innerHTML = "";
-            
             const sortedDates = Object.keys(revenueHistory).sort((a, b) => {
                 const pA = a.split('-'); const pB = b.split('-');
                 return new Date(pB[2], pB[1] - 1, pB[0]) - new Date(pA[2], pA[1] - 1, pA[0]);
@@ -587,9 +622,7 @@
                     historyContainer.appendChild(div);
                 }
             });
-            if (!hasHistory) {
-                historyContainer.innerHTML = `<div style="color:#aaa; text-align:center;">Chưa có lịch sử doanh thu ngày</div>`;
-            }
+            if (!hasHistory) historyContainer.innerHTML = `<div style="color:#aaa; text-align:center;">Chưa có lịch sử doanh thu ngày</div>`;
         }
 
         function onMonthFilterChange() {
@@ -745,7 +778,7 @@
             }
         }
 
-        // CHỨC NĂNG IN BÁO CÁO THÔNG MINH THEO THÁNG ĐANG LỌC
+        // IN BÁO CÁO THÔNG MINH KÈM XẾP HẠNG NHU CẦU GỌI MÓN
         function printFilteredReport() {
             const targetMonthYear = document.getElementById("report-month-select").value;
             if (!targetMonthYear) return;
@@ -757,9 +790,21 @@
             });
 
             if (filteredBills.length === 0) {
-                alert("Khoảng thời gian này chưa có dữ liệu hóa đơn để in báo cáo!");
+                alert("Khoảng thời gian này chưa có dữ liệu để xuất!");
                 return;
             }
+
+            // Tính toán danh sách tổng hợp món cho phôi in
+            let itemDemandDict = {};
+            filteredBills.forEach(bill => {
+                if (bill.orderList) {
+                    bill.orderList.forEach(item => {
+                        itemDemandDict[item.name] = (itemDemandDict[item.name] || 0) + item.qty;
+                    });
+                }
+            });
+            let sortedDemandArr = Object.entries(itemDemandDict).sort((a, b) => b[1] - a[1]);
+            let demandHTML = sortedDemandArr.map(([name, qty], index) => `  ${index + 1}. ${name}: ${qty} phần`).join('<br>');
 
             let reportWindow = window.open('', '_blank');
             let billsHTML = filteredBills.map((bill) => {
@@ -790,8 +835,11 @@
                     <h3>BÁO CÁO DOANH THU THÁNG</h3>
                     <p class="text-center">Kỳ đối soát: Tháng ${targetMonthYear.replace('-', '/')}</p>
                     <div class="hr-double"></div>
-                    <p>Tổng số lượng bàn phục vụ: <strong>${filteredBills.length} bàn</strong></p>
                     <p class="total-summary">TỔNG DOANH THU THÁNG: ${document.getElementById("month-total-money").textContent}đ</p>
+                    <p>Tổng số món nước đã bán: <strong>${document.getElementById("month-total-items").textContent} phần</strong></p>
+                    <div class="hr-double"></div>
+                    <h4>📊 XẾP HẠNG LƯỢNG TIÊU THỤ:</h4>
+                    <div style="line-height: 1.5; margin-bottom: 10px;">${demandHTML}</div>
                     <div class="hr-double"></div>
                     <h4>CHI TIẾT DANH SÁCH HÓA ĐƠN:</h4>
                     ${billsHTML}
