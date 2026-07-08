@@ -216,6 +216,7 @@
         .history-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; }
         .history-item:nth-child(even) { background-color: #fcfbfa; }
 
+        /* Giao diện 5 hóa đơn */
         .bill-item {
             padding: 12px;
             border-bottom: 1px solid #ddd;
@@ -235,6 +236,7 @@
         }
     </style>
 
+    <!-- TÍNH NĂNG ONLINE: Thư viện kết nối đám mây Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
@@ -248,11 +250,13 @@
         </div>
     </header>
 
+    <!-- THANH TABS -->
     <div class="tab-bar">
         <button id="nav-pos" class="tab-nav-btn active-tab-nav" onclick="switchTab('pos')">⚡ BÁN HÀNG TIẾP TÂN</button>
         <button id="nav-stats" class="tab-nav-btn" onclick="switchTab('stats')">📊 THỐNG KÊ DOANH THU</button>
     </div>
 
+    <!-- TAB 1: MÀN HÌNH BÁN HÀNG CHÍNH -->
     <div id="tab-pos" class="tab-content active-tab-view">
         <div class="main-layout">
             <div class="tables-section">
@@ -283,6 +287,7 @@
         </div>
     </div>
 
+    <!-- TAB 2: MÀN HÌNH THỐNG KÊ DOANH THU -->
     <div id="tab-stats" class="tab-content">
         <div class="card-view">
             <h3>5 hóa đơn gần nhất (Có thể Hủy sửa sai)</h3>
@@ -296,24 +301,23 @@
 
     <script>
         // =================================================================
-        // BƯỚC QUAN TRỌNG: ĐIỀN ĐỊA CHỈ DATABASE CỦA BẠN VÀO ĐÂY ĐỂ CHẠY
+        // ĐÃ NẠP THÀNH CÔNG: MÃ CẤU HÌNH FIREBASE THẬT CỦA TINO COFFEE
         // =================================================================
         const firebaseConfig = {
-          apiKey: "AIzaSyClUxh49lSWRbOj_tZvU-BAWmUHZDRhTYE",
-          authDomain: "tino-coffee.firebaseapp.com",
-          databaseURL: "https://tino-coffee-default-rtdb.asia-southeast1.firebasedatabase.app",
-          projectId: "tino-coffee",
-          storageBucket: "tino-coffee.firebasestorage.app",
-          messagingSenderId: "323694911796",
-          appId: "1:323694911796:web:1f73ff694c90044aae8561"
+            apiKey: "AIzaSyClUxh49lSWRbOj_tZvU-BAWmUHZDRhTYE",
+            authDomain: "tino-coffee.firebaseapp.com",
+            databaseURL: "https://tino-coffee-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "tino-coffee",
+            storageBucket: "tino-coffee.firebasestorage.app",
+            messagingSenderId: "323694911796",
+            appId: "1:323694911796:web:1f73ff694c90044aae8561"
         };
         
-        
-        // Khởi tạo kết nối Google Firebase
+        // Khởi tạo Firebase kết nối hệ thống
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // Danh mục Menu quán gốc
+        // Danh mục Menu quán gốc đầy đủ của bạn
         const menuData = [
             { category: "CÀ PHÊ", items: [
                 { id: "cf_den_phin", name: "Cafe Đen (Phin)", price: 15000 }, { id: "cf_sua_phin", name: "Cafe Sữa (Phin)", price: 17000 },
@@ -356,24 +360,20 @@
         }
         const todayStr = getTodayString();
 
-        // =================================================================
-        // CƠ CHẾ ĐỒNG BỘ ONLINE THỜI GIAN THỰC (REALTIME LISTENER)
-        // =================================================================
+        // LẮNG NGHE ĐỒNG BỘ DỮ LIỆU LIÊN TỤC TRÊN ĐÁM MÂY (REALTIME)
         db.ref('tino_coffee_store').on('value', (snapshot) => {
             const data = snapshot.val() || {};
             
-            // Nhận dữ liệu bàn ghế online
             tables = data.tables || {};
             if (Object.keys(tables).length === 0) {
                 for (let i = 1; i <= 25; i++) tables[i] = { orderList: [] };
             }
             
-            // Nhận dữ liệu doanh thu & hóa đơn online
             revenueHistory = data.revenueHistory || {};
             if (!revenueHistory[todayStr]) revenueHistory[todayStr] = 0;
             recentBills = data.recentBills || [];
 
-            // Đổ lên màn hình ngay lập tức khi phát hiện có máy khác thay đổi dữ liệu
+            // Thông báo kết nối thành công khi dữ liệu online được đồng bộ về máy
             document.getElementById("net-status").textContent = "💚 Đám mây đồng bộ trực tuyến";
             document.getElementById("net-status").style.color = "#2ec4b6";
             
@@ -381,11 +381,11 @@
             updateRevenueDisplay();
             if (currentTableId) renderOrderList();
         }, (error) => {
-            document.getElementById("net-status").textContent = "❌ Lỗi kết nối hoặc Sai cấu hình Firebase!";
+            document.getElementById("net-status").textContent = "❌ Lỗi kết nối đám mây! (Kiểm tra lại Rules của Firebase)";
             document.getElementById("net-status").style.color = "#e71d36";
         });
 
-        // Đẩy dữ liệu lên mây mỗi khi thao tác thêm/sửa/thanh toán
+        // Hàm đẩy dữ liệu đồng bộ lên đám mây khi có thay đổi hành động bấm nút
         function pushDataToCloud() {
             db.ref('tino_coffee_store').set({
                 tables: tables,
@@ -526,7 +526,7 @@
             document.getElementById("takeaway-checkbox").checked = false;
             
             renderOrderList();
-            pushDataToCloud(); // Đẩy lên đám mây thời gian thực
+            pushDataToCloud(); 
         }
 
         function changeQty(index, change) {
@@ -534,9 +534,10 @@
             if (currentOrder[index].qty <= 0) currentOrder.splice(index, 1);
             
             renderOrderList();
-            pushDataToCloud(); // Đẩy lên đám mây thời gian thực
+            pushDataToCloud(); 
         }
 
+        // Bấm nút thanh toán đẩy quỹ tiền lên đám mây lưu trữ
         function checkoutTable() {
             if (!currentTableId) return;
             const currentOrder = tables[currentTableId].orderList;
@@ -561,7 +562,7 @@
                 document.getElementById("order-controls").style.display = "none";
                 currentTableId = null;
 
-                pushDataToCloud(); // Đẩy lên đám mây thời gian thực
+                pushDataToCloud(); 
             }
         }
 
@@ -579,7 +580,7 @@
                 recentBills.splice(billIndex, 1);
                 
                 if (currentTableId === bill.tableId) renderOrderList();
-                pushDataToCloud(); // Đẩy lên đám mây thời gian thực
+                pushDataToCloud(); 
                 alert(`Đã hoàn tác thành công!`);
             }
         }
