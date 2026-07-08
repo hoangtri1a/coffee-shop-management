@@ -81,13 +81,15 @@
         .tab-content { display: none; }
         .tab-content.active-tab-view { display: block; }
 
+        /* ================================================================= */
+        /* THAY ĐỔI QUAN TRỌNG: CSS MOBILE-FIRST (MẶC ĐỊNH CHO ĐIỆN THOẠI)     */
+        /* ================================================================= */
         .main-layout {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr; /* Mặc định 1 cột tràn màn hình trên điện thoại */
             gap: 15px;
         }
 
-        /* Sơ đồ bàn */
         .tables-section {
             background: white;
             padding: 15px;
@@ -97,7 +99,7 @@
 
         .tables-grid {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
+            grid-template-columns: repeat(4, 1fr); /* Điện thoại hiện 4 bàn/hàng để ô bấm to rõ */
             gap: 10px;
             margin-top: 10px;
         }
@@ -128,7 +130,7 @@
             transform: scale(1.05);
         }
 
-        /* Gọi món */
+        /* Khu vực gọi món */
         .order-section {
             background: white;
             padding: 15px;
@@ -136,6 +138,7 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
             display: flex;
             flex-direction: column;
+            scroll-margin-top: 10px; /* Tạo khoảng trống khi tự động cuộn */
         }
 
         .takeaway-option {
@@ -143,7 +146,7 @@
             align-items: center;
             gap: 10px;
             margin: 12px 0;
-            padding: 5px;
+            padding: 10px;
             background-color: #fff5e6;
             border-radius: 6px;
             border: 1px dashed var(--active-color);
@@ -155,12 +158,13 @@
 
         select, .btn-action {
             width: 100%;
-            padding: 12px;
+            padding: 14px; /* Tăng nhẹ padding để ngón tay dễ chạm trúng */
             margin-top: 5px;
             border-radius: 6px;
             border: 1px solid #ccc;
             font-size: 1rem;
             font-weight: bold;
+            -webkit-appearance: none; /* Tối ưu hiển thị select box trên iOS Safari */
         }
 
         .btn-add { background-color: var(--primary-color); color: white; border: none; cursor: pointer; }
@@ -168,7 +172,7 @@
         .order-list {
             flex-grow: 1;
             margin-top: 15px;
-            max-height: 350px;
+            max-height: 380px;
             overflow-y: auto;
             border-bottom: 2px dashed #ddd;
             padding-bottom: 10px;
@@ -178,7 +182,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8px 0;
+            padding: 10px 0;
             border-bottom: 1px solid #eee;
         }
 
@@ -191,18 +195,25 @@
             margin-left: 5px;
         }
 
+        .item-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
         .btn-qty {
-            width: 28px;
-            height: 28px;
+            width: 32px; /* Tăng kích thước nút tăng giảm số lượng nước */
+            height: 32px;
             background-color: #e0e0e0;
             border: none;
             border-radius: 4px;
             font-weight: bold;
             cursor: pointer;
+            font-size: 1.1rem;
         }
 
-        .total-price { font-size: 1.3rem; font-weight: bold; text-align: right; margin-bottom: 10px; }
-        .btn-pay { background-color: var(--success-color); color: white; border: none; font-size: 1.1rem; cursor: pointer; }
+        .total-price { font-size: 1.4rem; font-weight: bold; text-align: right; margin-bottom: 12px; }
+        .btn-pay { background-color: var(--success-color); color: white; border: none; font-size: 1.1rem; cursor: pointer; padding: 14px; }
 
         .card-view {
             background: white;
@@ -227,7 +238,17 @@
 
         .bill-header { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 6px; }
         .bill-details { font-size: 0.85rem; color: #555; padding-left: 5px; line-height: 1.4; }
-        .btn-undo { background-color: var(--danger-color); color: white; border: none; padding: 4px 8px; font-size: 0.8rem; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-undo { background-color: var(--danger-color); color: white; border: none; padding: 5px 10px; font-size: 0.8rem; border-radius: 4px; cursor: pointer; font-weight: bold; }
+
+        /* ĐỐI VỚI MÀN HÌNH LỚN (MÁY TÍNH HOẶC IPAD XOAY NGANG) -> TỰ ĐỘNG CHUYỂN 2 CỘT */
+        @media (min-width: 769px) {
+            .main-layout {
+                grid-template-columns: 1fr 1fr;
+            }
+            .tables-grid {
+                grid-template-columns: repeat(5, 1fr); /* Màn hình lớn hiện 5 bàn/hàng như cũ */
+            }
+        }
     </style>
 
     <!-- TÍNH NĂNG ONLINE: Thư viện kết nối đám mây Firebase -->
@@ -258,7 +279,7 @@
                 <div class="tables-grid" id="tables-container"></div>
             </div>
 
-            <div class="order-section">
+            <div class="order-section" id="order-section-panel">
                 <h3 id="order-title">Vui lòng chọn bàn...</h3>
                 <div id="order-controls" style="display: none;">
                     <div class="menu-selector">
@@ -270,7 +291,7 @@
                         </div>
                         <button class="btn-action btn-add" onclick="addItemToTable()">Thêm món vào bàn</button>
                     </div>
-                    <h4>Món đã gọi:</h4>
+                    <h4 style="margin-top: 10px;">Món đã gọi:</h4>
                     <div class="order-list" id="current-order-list"></div>
                     <div class="checkout-box">
                         <div class="total-price">Tổng cộng: <span id="table-total">0</span>đ</div>
@@ -320,7 +341,7 @@
                 { id: "cacao_da_nong", name: "Cacao Đá/Nóng", price: 27000 }, { id: "tra_gung", name: "Trà Gừng", price: 25000 }, { id: "cacao_muoi", name: "Cacao Muối", price: 32000 }
             ]},
             { category: "SỮA CHUA", items: [
-                { id: "sua_chua_da", name: "Sữa Chua Đá", price: 22000 }, { id: "sua_chua_dau", name: "Sữa Chua Dâu", price: 27000 },
+                { id: "sua_chua_da", name: "Sữa Yogurt Đá", price: 22000 }, { id: "sua_chua_dau", name: "Sữa Chua Dâu", price: 27000 },
                 { id: "sua_chua_viet_quat", name: "Sữa Chua Việt Quất", price: 27000 }, { id: "sua_chua_dao", name: "Sữa Chua Đào", price: 27000 }
             ]},
             { category: "NƯỚC GIẢI KHÁT", items: [
@@ -345,7 +366,6 @@
         let recentBills = [];
         let currentTableId = null;
 
-        // THAY ĐỔI QUAN TRỌNG: Đổi dấu gạch chéo sang gạch ngang để Firebase nhận diện chuẩn text phẳng
         function getTodayString() {
             const d = new Date();
             return `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
@@ -394,19 +414,17 @@
             document.getElementById("net-status").style.color = "#e71d36";
         });
 
-        // BỔ SUNG: Còi cảnh báo lỗi để báo ngay nếu bạn chưa ấn nút Publish Rules trên Firebase
         function pushDataToCloud() {
             db.ref('tino_coffee_store').set({
                 tables: tables,
                 revenueHistory: revenueHistory,
                 recentBills: recentBills
             }).catch(error => {
-                alert("⚠️ THẤT BẠI: Đám mây từ chối lưu dữ liệu!\n\nLý do: Bạn chưa mở khóa Rules trên Firebase.\nHãy vào mục Realtime Database -> Tab Rules -> Sửa hết thành \"true\" rồi bấm nút PUBLISH màu xanh nhé!");
+                alert("⚠️ THẤT BẠI: Đám mây từ chối lưu dữ liệu!\n\nHãy kiểm tra lại Rules của Firebase.");
             });
         }
 
         document.addEventListener("DOMContentLoaded", () => {
-            // Hiển thị dạng dấu gạch chéo thân thiện cho người xem trên giao diện
             document.getElementById("today-date").textContent = todayStr.replace(/-/g, '/');
             initMenuSelect();
         });
@@ -504,6 +522,11 @@
             document.getElementById("order-title").textContent = `Đang chọn: BÀN ${tableId}`;
             document.getElementById("order-controls").style.display = "block";
             renderOrderList();
+
+            // THAY ĐỔI UX: Tự động cuộn màn hình xuống vùng gọi món khi thao tác trên điện thoại cầm tay
+            if (window.innerWidth <= 768) {
+                document.getElementById("order-section-panel").scrollIntoView({ behavior: 'smooth' });
+            }
         }
 
         function renderOrderList() {
