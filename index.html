@@ -228,11 +228,6 @@
         .bill-header { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 6px; }
         .bill-details { font-size: 0.85rem; color: #555; padding-left: 5px; line-height: 1.4; }
         .btn-undo { background-color: var(--danger-color); color: white; border: none; padding: 4px 8px; font-size: 0.8rem; border-radius: 4px; cursor: pointer; font-weight: bold; }
-
-        @media (max-width: 768px) {
-            .main-layout { grid-template-columns: 1fr; }
-            .tables-grid { grid-template-columns: repeat(4, 1fr); }
-        }
     </style>
 
     <!-- TÍNH NĂNG ONLINE: Thư viện kết nối đám mây Firebase -->
@@ -350,9 +345,10 @@
         let recentBills = [];
         let currentTableId = null;
 
+        // THAY ĐỔI QUAN TRỌNG: Đổi dấu gạch chéo sang gạch ngang để Firebase nhận diện chuẩn text phẳng
         function getTodayString() {
             const d = new Date();
-            return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+            return `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
         }
         const todayStr = getTodayString();
 
@@ -360,7 +356,6 @@
         db.ref('tino_coffee_store').on('value', (snapshot) => {
             const data = snapshot.val() || {};
             
-            // SỬA LỖI CHÍNH: Ép dữ liệu bàn từ Firebase quay về mảng thuần túy JS
             let cloudTables = data.tables || {};
             tables = {};
             for (let i = 1; i <= 25; i++) {
@@ -377,7 +372,6 @@
             revenueHistory = data.revenueHistory || {};
             if (!revenueHistory[todayStr]) revenueHistory[todayStr] = 0;
             
-            // Ép dữ liệu hóa đơn gần đây về mảng thuần túy JS
             if (data.recentBills) {
                 recentBills = Array.isArray(data.recentBills) ? data.recentBills : Object.values(data.recentBills);
                 recentBills.forEach(bill => {
@@ -400,16 +394,20 @@
             document.getElementById("net-status").style.color = "#e71d36";
         });
 
+        // BỔ SUNG: Còi cảnh báo lỗi để báo ngay nếu bạn chưa ấn nút Publish Rules trên Firebase
         function pushDataToCloud() {
             db.ref('tino_coffee_store').set({
                 tables: tables,
                 revenueHistory: revenueHistory,
                 recentBills: recentBills
+            }).catch(error => {
+                alert("⚠️ THẤT BẠI: Đám mây từ chối lưu dữ liệu!\n\nLý do: Bạn chưa mở khóa Rules trên Firebase.\nHãy vào mục Realtime Database -> Tab Rules -> Sửa hết thành \"true\" rồi bấm nút PUBLISH màu xanh nhé!");
             });
         }
 
         document.addEventListener("DOMContentLoaded", () => {
-            document.getElementById("today-date").textContent = todayStr;
+            // Hiển thị dạng dấu gạch chéo thân thiện cho người xem trên giao diện
+            document.getElementById("today-date").textContent = todayStr.replace(/-/g, '/');
             initMenuSelect();
         });
 
@@ -465,13 +463,13 @@
         function renderHistory() {
             const container = document.getElementById("history-container"); container.innerHTML = "";
             const sortedDates = Object.keys(revenueHistory).sort((a, b) => {
-                const pA = a.split('/'); const pB = b.split('/');
+                const pA = a.split('-'); const pB = b.split('-');
                 return new Date(pB[2], pB[1] - 1, pB[0]) - new Date(pA[2], pA[1] - 1, pA[0]);
             });
             if (sortedDates.length === 0) { container.innerHTML = `<div style="color:#aaa; text-align:center;">Chưa có dữ liệu</div>`; return; }
             sortedDates.forEach(date => {
                 const div = document.createElement("div"); div.className = "history-item";
-                div.innerHTML = `<span>📅 Ngày <strong>${date}</strong> ${date === todayStr ? '<small style="color:var(--active-color)">(Hôm nay)</small>' : ''}</span>
+                div.innerHTML = `<span>📅 Ngày <strong>${date.replace(/-/g, '/')}</strong> ${date === todayStr ? '<small style="color:var(--active-color)">(Hôm nay)</small>' : ''}</span>
                                  <span style="font-weight:bold; color:var(--primary-color);">${revenueHistory[date].toLocaleString('vi-VN')}đ</span>`;
                 container.appendChild(div);
             });
