@@ -335,7 +335,7 @@
                 { id: "khoang_sua", name: "Khoáng Sữa", price: 17000 },
                 { id: "sting_vang", name: "Sting Vàng", price: 16000 },
                 { id: "sting_dau", name: "Sting Dâu", price: 17000 },
-                { id: "bo_huc", name: "Bò Húc", price: 22000 } // <-- Món mới của bạn ở đây
+                { id: "bo_huc", name: "Bò Húc", price: 22000 } // <-- Đã thêm Bò Húc 22k thành công
             ]},
             { category: "TRÀ TRÁI CÂY", items: [
                 { id: "tra_chanh_dau", name: "Trà Chanh Dâu", price: 25000 },
@@ -436,7 +436,7 @@
 
         function initMenuSelect() {
             const select = document.getElementById("menu-select");
-            select.innerHTML = ""; // Xóa dữ liệu cũ để load lại mới chuẩn xác
+            select.innerHTML = ""; 
             menuData.forEach(cat => {
                 const group = document.createElement("optgroup");
                 group.label = cat.category;
