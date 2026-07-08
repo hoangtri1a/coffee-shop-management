@@ -81,12 +81,9 @@
         .tab-content { display: none; }
         .tab-content.active-tab-view { display: block; }
 
-        /* ================================================================= */
-        /* THAY ĐỔI QUAN TRỌNG: CSS MOBILE-FIRST (MẶC ĐỊNH CHO ĐIỆN THOẠI)     */
-        /* ================================================================= */
         .main-layout {
             display: grid;
-            grid-template-columns: 1fr; /* Mặc định 1 cột tràn màn hình trên điện thoại */
+            grid-template-columns: 1fr;
             gap: 15px;
         }
 
@@ -99,7 +96,7 @@
 
         .tables-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr); /* Điện thoại hiện 4 bàn/hàng để ô bấm to rõ */
+            grid-template-columns: repeat(4, 1fr);
             gap: 10px;
             margin-top: 10px;
         }
@@ -137,8 +134,9 @@
             border-radius: 8px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
             display: flex;
+            flex-grow: 1;
             flex-direction: column;
-            scroll-margin-top: 10px; /* Tạo khoảng trống khi tự động cuộn */
+            scroll-margin-top: 10px;
         }
 
         .takeaway-option {
@@ -158,13 +156,13 @@
 
         select, .btn-action {
             width: 100%;
-            padding: 14px; /* Tăng nhẹ padding để ngón tay dễ chạm trúng */
+            padding: 14px;
             margin-top: 5px;
             border-radius: 6px;
             border: 1px solid #ccc;
             font-size: 1rem;
             font-weight: bold;
-            -webkit-appearance: none; /* Tối ưu hiển thị select box trên iOS Safari */
+            -webkit-appearance: none;
         }
 
         .btn-add { background-color: var(--primary-color); color: white; border: none; cursor: pointer; }
@@ -202,7 +200,7 @@
         }
 
         .btn-qty {
-            width: 32px; /* Tăng kích thước nút tăng giảm số lượng nước */
+            width: 32px;
             height: 32px;
             background-color: #e0e0e0;
             border: none;
@@ -223,7 +221,7 @@
             margin-bottom: 15px;
         }
 
-        .scroll-list { margin-top: 10px; max-height: 320px; overflow-y: auto; }
+        .scroll-list { margin-top: 10px; max-height: 400px; overflow-y: auto; }
         .history-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; }
         .history-item:nth-child(even) { background-color: #fcfbfa; }
 
@@ -240,18 +238,52 @@
         .bill-details { font-size: 0.85rem; color: #555; padding-left: 5px; line-height: 1.4; }
         .btn-undo { background-color: var(--danger-color); color: white; border: none; padding: 5px 10px; font-size: 0.8rem; border-radius: 4px; cursor: pointer; font-weight: bold; }
 
-        /* ĐỐI VỚI MÀN HÌNH LỚN (MÁY TÍNH HOẶC IPAD XOAY NGANG) -> TỰ ĐỘNG CHUYỂN 2 CỘT */
+        /* Khung hiển thị tổng quan bộ lọc của tháng */
+        .month-filter-box {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 15px;
+            background-color: #fff5e6;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid var(--secondary-color);
+        }
+        .month-filter-box select { width: auto; margin: 0; padding: 8px 30px 8px 10px; }
+
+        .month-summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .summary-mini-card {
+            background: var(--secondary-color);
+            padding: 12px;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .btn-print-report {
+            background-color: #2b2d42;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
         @media (min-width: 769px) {
-            .main-layout {
-                grid-template-columns: 1fr 1fr;
-            }
-            .tables-grid {
-                grid-template-columns: repeat(5, 1fr); /* Màn hình lớn hiện 5 bàn/hàng như cũ */
-            }
+            .main-layout { grid-template-columns: 1fr 1fr; }
+            .tables-grid { grid-template-columns: repeat(5, 1fr); }
         }
     </style>
 
-    <!-- TÍNH NĂNG ONLINE: Thư viện kết nối đám mây Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
@@ -265,7 +297,6 @@
         </div>
     </header>
 
-    <!-- THANH TABS -->
     <div class="tab-bar">
         <button id="nav-pos" class="tab-nav-btn active-tab-nav" onclick="switchTab('pos')">⚡ BÁN HÀNG TIẾP TÂN</button>
         <button id="nav-stats" class="tab-nav-btn" onclick="switchTab('stats')">📊 THỐNG KÊ DOANH THU</button>
@@ -302,20 +333,42 @@
         </div>
     </div>
 
-    <!-- TAB 2: MÀN HÌNH THỐNG KÊ DOANH THU -->
+    <!-- TAB 2: MÀN HÌNH THỐNG KÊ THEO LỊCH THÁNG DƯƠNG LỊCH CỤ THỂ -->
     <div id="tab-stats" class="tab-content">
+        
+        <!-- KHUNG BỘ LỌC THÁNG LỊCH TRỰC QUAN -->
+        <div class="month-filter-box">
+            <label style="font-weight:bold;">📅 Chọn Tháng Đối Soát:</label>
+            <select id="report-month-select" onchange="onMonthFilterChange()">
+                <!-- Các tháng tự động sinh ở đây -->
+            </select>
+        </div>
+
+        <!-- THẺ THÔNG SỐ TỔNG KẾT THEO THÁNG -->
+        <div class="month-summary-grid">
+            <div class="summary-mini-card" style="color:var(--primary-color);">
+                <div>Doanh Thu Tháng</div>
+                <span id="month-total-money" style="font-size:1.3rem;">0</span>đ
+            </div>
+            <div class="summary-mini-card" style="color:var(--dark-color);">
+                <div>Tổng Số Bàn Đã Bán</div>
+                <span id="month-total-bills" style="font-size:1.3rem;">0</span> bàn
+            </div>
+        </div>
+
+        <button class="btn-print-report" onclick="printFilteredReport()">🖨️ XUẤT BÁO CÁO THỜI GIAN ĐANG CHỌN</button>
+
         <div class="card-view">
-            <h3>5 hóa đơn gần nhất (Có thể Hủy sửa sai)</h3>
+            <h3>Danh sách hóa đơn chi tiết trong tháng</h3>
             <div class="scroll-list" id="recent-bills-container"></div>
         </div>
         <div class="card-view">
-            <h3>Lịch sử doanh thu 30 ngày</h3>
+            <h3>Lịch sử doanh thu từng ngày</h3>
             <div class="scroll-list" id="history-container"></div>
         </div>
     </div>
 
     <script>
-        // Cấu hình Firebase thật của TINO COFFEE
         const firebaseConfig = {
             apiKey: "AIzaSyClUxh49lSWRbOj_tZvU-BAWmUHZDRhTYE",
             authDomain: "tino-coffee.firebaseapp.com",
@@ -329,7 +382,6 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // Danh mục Menu quán gốc đầy đủ
         const menuData = [
             { category: "CÀ PHÊ", items: [
                 { id: "cf_den_phin", name: "Cafe Đen (Phin)", price: 15000 }, { id: "cf_sua_phin", name: "Cafe Sữa (Phin)", price: 17000 },
@@ -372,7 +424,7 @@
         }
         const todayStr = getTodayString();
 
-        // LẮNG NGHE ĐỒNG BỘ DỮ LIỆU LIÊN TỤC TRÊN ĐÁM MÂY (REALTIME)
+        // LẮNG NGHE ĐỒNG BỘ DỮ LIỆU ĐÁM MÂY
         db.ref('tino_coffee_store').on('value', (snapshot) => {
             const data = snapshot.val() || {};
             
@@ -392,6 +444,7 @@
             revenueHistory = data.revenueHistory || {};
             if (!revenueHistory[todayStr]) revenueHistory[todayStr] = 0;
             
+            // Nhận tất cả hóa đơn không giới hạn thời gian cũ
             if (data.recentBills) {
                 recentBills = Array.isArray(data.recentBills) ? data.recentBills : Object.values(data.recentBills);
                 recentBills.forEach(bill => {
@@ -408,9 +461,11 @@
             
             renderTables();
             updateRevenueDisplay();
+            buildMonthDropdownOptions(); // Tự động sinh danh sách tháng đối soát
+            renderFilteredStats(); // Làm mới giao diện thống kê theo tháng đang chọn
             if (currentTableId) renderOrderList();
         }, (error) => {
-            document.getElementById("net-status").textContent = "❌ Lỗi kết nối đám mây! (Kiểm tra lại Rules)";
+            document.getElementById("net-status").textContent = "❌ Lỗi kết nối đám mây!";
             document.getElementById("net-status").style.color = "#e71d36";
         });
 
@@ -419,8 +474,6 @@
                 tables: tables,
                 revenueHistory: revenueHistory,
                 recentBills: recentBills
-            }).catch(error => {
-                alert("⚠️ THẤT BẠI: Đám mây từ chối lưu dữ liệu!\n\nHãy kiểm tra lại Rules của Firebase.");
             });
         }
 
@@ -428,6 +481,120 @@
             document.getElementById("today-date").textContent = todayStr.replace(/-/g, '/');
             initMenuSelect();
         });
+
+        // TỰ ĐỘNG SINH DANH SÁCH CÁC THÁNG CÓ DỮ LIỆU ĐỂ LỌC
+        function buildMonthDropdownOptions() {
+            const select = document.getElementById("report-month-select");
+            const currentSelected = select.value; // Giữ lại lựa chọn cũ khi đám mây cập nhật
+            
+            // Tìm trọn vẹn tất cả các cặp tháng-năm xuất hiện trong dữ liệu hóa đơn
+            let monthsSet = new Set();
+            
+            // Mặc định luôn add tháng hiện tại vào danh sách chọn
+            const d = new Date();
+            const currentMonthYearStr = `${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
+            monthsSet.add(currentMonthYearStr);
+
+            recentBills.forEach(bill => {
+                if (bill.date) {
+                    let parts = bill.date.split('-');
+                    if (parts.length === 3) {
+                        monthsSet.add(`${parts[1]}-${parts[2]}`);
+                    }
+                }
+            });
+
+            // Sắp xếp các tháng từ mới nhất xuống cũ nhất
+            let sortedMonths = Array.from(monthsSet).sort((a, b) => {
+                let pA = a.split('-'); let pB = b.split('-');
+                return new Date(pB[1], pB[0]-1) - new Date(pA[1], pA[0]-1);
+            });
+
+            select.innerHTML = "";
+            sortedMonths.forEach(m => {
+                const opt = document.createElement("option");
+                opt.value = m;
+                opt.textContent = `Tháng ${m.replace('-', '/')}`;
+                select.appendChild(opt);
+            });
+
+            if (currentSelected && sortedMonths.includes(currentSelected)) {
+                select.value = currentSelected;
+            } else {
+                select.value = currentMonthYearStr;
+            }
+        }
+
+        // HÀM LỌC VÀ HIỂN THỊ DỮ LIỆU THEO THÁNG CỤ THỂ
+        function renderFilteredStats() {
+            const targetMonthYear = document.getElementById("report-month-select").value;
+            if (!targetMonthYear) return;
+
+            // 1. Lọc hóa đơn thuộc tháng đang chọn
+            let filteredBills = recentBills.filter(bill => {
+                if (!bill.date) return false;
+                let parts = bill.date.split('-');
+                return `${parts[1]}-${parts[2]}` === targetMonthYear;
+            });
+
+            // 2. Tính tổng tiền mặt và số lượng bàn của tháng đó
+            let totalMoney = filteredBills.reduce((sum, b) => sum + b.total, 0);
+            document.getElementById("month-total-money").textContent = totalMoney.toLocaleString('vi-VN');
+            document.getElementById("month-total-bills").textContent = filteredBills.length;
+
+            // 3. Đổ danh sách hóa đơn chi tiết vào khung nhìn
+            const billsContainer = document.getElementById("recent-bills-container");
+            billsContainer.innerHTML = "";
+            
+            if (filteredBills.length === 0) {
+                billsContainer.innerHTML = `<div style="color:#aaa; text-align:center; padding:10px;">Tháng này chưa phát sinh hóa đơn</div>`;
+            } else {
+                filteredBills.forEach(bill => {
+                    const div = document.createElement("div"); div.className = "bill-item";
+                    let itemsDetailHTML = bill.orderList.map(i => `• ${i.name}${i.isTakeAway?' (Mang đi)':''} x${i.qty} - ${(i.price*i.qty).toLocaleString('vi-VN')}đ`).join('<br>');
+                    
+                    div.innerHTML = `
+                        <div class="bill-header">
+                            <span>Bàn ${bill.tableId} <small style="color:#666; font-weight:normal;">(${bill.date.replace(/-/g, '/')} ${bill.time})</small></span>
+                            <button class="btn-undo" onclick="undoCheckout('${bill.id}')">Hủy</button>
+                        </div>
+                        <div class="bill-details">
+                            ${itemsDetailHTML}
+                            <div style="text-align:right; font-weight:bold; color:var(--danger-color); margin-top:4px;">Tổng: ${bill.total.toLocaleString('vi-VN')}đ</div>
+                        </div>
+                    `;
+                    billsContainer.appendChild(div);
+                });
+            }
+
+            // 4. Đổ danh sách doanh thu tổng theo từng ngày trong tháng đó
+            const historyContainer = document.getElementById("history-container");
+            historyContainer.innerHTML = "";
+            
+            const sortedDates = Object.keys(revenueHistory).sort((a, b) => {
+                const pA = a.split('-'); const pB = b.split('-');
+                return new Date(pB[2], pB[1] - 1, pB[0]) - new Date(pA[2], pA[1] - 1, pA[0]);
+            });
+
+            let hasHistory = false;
+            sortedDates.forEach(date => {
+                let parts = date.split('-');
+                if (`${parts[1]}-${parts[2]}` === targetMonthYear) {
+                    hasHistory = true;
+                    const div = document.createElement("div"); div.className = "history-item";
+                    div.innerHTML = `<span>📅 Ngày <strong>${date.replace(/-/g, '/')}</strong> ${date === todayStr ? '<small style="color:var(--active-color)">(Hôm nay)</small>' : ''}</span>
+                                     <span style="font-weight:bold; color:var(--primary-color);">${revenueHistory[date].toLocaleString('vi-VN')}đ</span>`;
+                    historyContainer.appendChild(div);
+                }
+            });
+            if (!hasHistory) {
+                historyContainer.innerHTML = `<div style="color:#aaa; text-align:center;">Chưa có lịch sử doanh thu ngày</div>`;
+            }
+        }
+
+        function onMonthFilterChange() {
+            renderFilteredStats();
+        }
 
         function switchTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active-tab-view'));
@@ -439,8 +606,7 @@
             } else {
                 document.getElementById('tab-stats').classList.add('active-tab-view');
                 document.getElementById('nav-stats').classList.add('active-tab-nav');
-                renderHistory();
-                renderRecentBills();
+                renderFilteredStats();
             }
         }
 
@@ -478,43 +644,6 @@
             document.getElementById("daily-revenue").textContent = (revenueHistory[todayStr] || 0).toLocaleString('vi-VN');
         }
 
-        function renderHistory() {
-            const container = document.getElementById("history-container"); container.innerHTML = "";
-            const sortedDates = Object.keys(revenueHistory).sort((a, b) => {
-                const pA = a.split('-'); const pB = b.split('-');
-                return new Date(pB[2], pB[1] - 1, pB[0]) - new Date(pA[2], pA[1] - 1, pA[0]);
-            });
-            if (sortedDates.length === 0) { container.innerHTML = `<div style="color:#aaa; text-align:center;">Chưa có dữ liệu</div>`; return; }
-            sortedDates.forEach(date => {
-                const div = document.createElement("div"); div.className = "history-item";
-                div.innerHTML = `<span>📅 Ngày <strong>${date.replace(/-/g, '/')}</strong> ${date === todayStr ? '<small style="color:var(--active-color)">(Hôm nay)</small>' : ''}</span>
-                                 <span style="font-weight:bold; color:var(--primary-color);">${revenueHistory[date].toLocaleString('vi-VN')}đ</span>`;
-                container.appendChild(div);
-            });
-        }
-
-        function renderRecentBills() {
-            const container = document.getElementById("recent-bills-container"); container.innerHTML = "";
-            if (!recentBills || recentBills.length === 0) { container.innerHTML = `<div style="color:#aaa; text-align:center; padding:10px;">Chưa có hóa đơn nào</div>`; return; }
-            
-            recentBills.forEach(bill => {
-                const div = document.createElement("div"); div.className = "bill-item";
-                let itemsDetailHTML = bill.orderList.map(i => `• ${i.name}${i.isTakeAway?' (Mang đi)':''} x${i.qty} - ${(i.price*i.qty).toLocaleString('vi-VN')}đ`).join('<br>');
-                
-                div.innerHTML = `
-                    <div class="bill-header">
-                        <span>Bàn ${bill.tableId} <small style="color:#666; font-weight:normal;">(${bill.time})</small></span>
-                        <button class="btn-undo" onclick="undoCheckout('${bill.id}')">Hủy</button>
-                    </div>
-                    <div class="bill-details">
-                        ${itemsDetailHTML}
-                        <div style="text-align:right; font-weight:bold; color:var(--danger-color); margin-top:4px;">Tổng: ${bill.total.toLocaleString('vi-VN')}đ</div>
-                    </div>
-                `;
-                container.appendChild(div);
-            });
-        }
-
         function selectTable(tableId) {
             currentTableId = tableId;
             document.querySelectorAll('.table-btn').forEach(b => b.classList.remove('selected-now'));
@@ -523,7 +652,6 @@
             document.getElementById("order-controls").style.display = "block";
             renderOrderList();
 
-            // THAY ĐỔI UX: Tự động cuộn màn hình xuống vùng gọi món khi thao tác trên điện thoại cầm tay
             if (window.innerWidth <= 768) {
                 document.getElementById("order-section-panel").scrollIntoView({ behavior: 'smooth' });
             }
@@ -587,8 +715,6 @@
                     orderList: JSON.parse(JSON.stringify(currentOrder))
                 });
 
-                if (recentBills.length > 5) recentBills.pop();
-
                 revenueHistory[activeTodayStr] = (revenueHistory[activeTodayStr] || 0) + total;
                 tables[currentTableId].orderList = [];
                 
@@ -617,6 +743,66 @@
                 pushDataToCloud(); 
                 alert(`Đã hoàn tác thành công!`);
             }
+        }
+
+        // CHỨC NĂNG IN BÁO CÁO THÔNG MINH THEO THÁNG ĐANG LỌC
+        function printFilteredReport() {
+            const targetMonthYear = document.getElementById("report-month-select").value;
+            if (!targetMonthYear) return;
+
+            let filteredBills = recentBills.filter(bill => {
+                if (!bill.date) return false;
+                let parts = bill.date.split('-');
+                return `${parts[1]}-${parts[2]}` === targetMonthYear;
+            });
+
+            if (filteredBills.length === 0) {
+                alert("Khoảng thời gian này chưa có dữ liệu hóa đơn để in báo cáo!");
+                return;
+            }
+
+            let reportWindow = window.open('', '_blank');
+            let billsHTML = filteredBills.map((bill) => {
+                let itemsText = bill.orderList.map(i => `  + ${i.name}${i.isTakeAway?'(MĐ)':''} x${i.qty} - ${(i.price*i.qty).toLocaleString('vi-VN')}đ`).join('<br>');
+                return `
+                    <div style="margin-bottom: 10px; border-bottom: 1px dashed #ccc; padding-bottom: 6px;">
+                        <strong>Bàn ${bill.tableId} (${bill.date.replace(/-/g, '/')} ${bill.time})</strong><br>
+                        ${itemsText}<br>
+                        <div style="text-align: right;">Tiền bàn: <strong>${bill.total.toLocaleString('vi-VN')}đ</strong></div>
+                    </div>
+                `;
+            }).join('');
+
+            reportWindow.document.write(`
+                <html>
+                <head>
+                    <title>Báo Cáo TINO COFFEE - Tháng ${targetMonthYear.replace('-', '/')}</title>
+                    <style>
+                        body { font-family: 'Courier New', Courier, monospace; padding: 15px; color: #000; font-size: 13px; max-width: 360px; margin: 0 auto; }
+                        h2, h3 { text-align: center; margin: 5px 0; }
+                        .text-center { text-align: center; }
+                        .hr-double { border-top: 3px double #000; margin: 10px 0; }
+                        .total-summary { font-size: 15px; font-weight: bold; margin-top: 10px; border-top: 1px solid #000; padding-top: 5px; }
+                    </style>
+                </head>
+                <body>
+                    <h2>TINO COFFEE</h2>
+                    <h3>BÁO CÁO DOANH THU THÁNG</h3>
+                    <p class="text-center">Kỳ đối soát: Tháng ${targetMonthYear.replace('-', '/')}</p>
+                    <div class="hr-double"></div>
+                    <p>Tổng số lượng bàn phục vụ: <strong>${filteredBills.length} bàn</strong></p>
+                    <p class="total-summary">TỔNG DOANH THU THÁNG: ${document.getElementById("month-total-money").textContent}đ</p>
+                    <div class="hr-double"></div>
+                    <h4>CHI TIẾT DANH SÁCH HÓA ĐƠN:</h4>
+                    ${billsHTML}
+                    <p class="text-center" style="margin-top: 25px;">-- HẾT BÁO CÁO THÁNG TINO --</p>
+                    <script>
+                        setTimeout(() => { window.print(); window.close(); }, 300);
+                    <\/script>
+                </body>
+                </html>
+            `);
+            reportWindow.document.close();
         }
     </script>
 </body>
