@@ -216,7 +216,6 @@
         .history-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; }
         .history-item:nth-child(even) { background-color: #fcfbfa; }
 
-        /* Giao diện 5 hóa đơn */
         .bill-item {
             padding: 12px;
             border-bottom: 1px solid #ddd;
@@ -300,9 +299,7 @@
     </div>
 
     <script>
-        // =================================================================
-        // ĐÃ NẠP THÀNH CÔNG: MÃ CẤU HÌNH FIREBASE THẬT CỦA TINO COFFEE
-        // =================================================================
+        // Cấu hình Firebase thật của TINO COFFEE
         const firebaseConfig = {
             apiKey: "AIzaSyClUxh49lSWRbOj_tZvU-BAWmUHZDRhTYE",
             authDomain: "tino-coffee.firebaseapp.com",
@@ -313,11 +310,10 @@
             appId: "1:323694911796:web:1f73ff694c90044aae8561"
         };
         
-        // Khởi tạo Firebase kết nối hệ thống
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // Danh mục Menu quán gốc đầy đủ của bạn
+        // Danh mục Menu quán gốc đầy đủ
         const menuData = [
             { category: "CÀ PHÊ", items: [
                 { id: "cf_den_phin", name: "Cafe Đen (Phin)", price: 15000 }, { id: "cf_sua_phin", name: "Cafe Sữa (Phin)", price: 17000 },
@@ -364,16 +360,35 @@
         db.ref('tino_coffee_store').on('value', (snapshot) => {
             const data = snapshot.val() || {};
             
-            tables = data.tables || {};
-            if (Object.keys(tables).length === 0) {
-                for (let i = 1; i <= 25; i++) tables[i] = { orderList: [] };
+            // SỬA LỖI CHÍNH: Ép dữ liệu bàn từ Firebase quay về mảng thuần túy JS
+            let cloudTables = data.tables || {};
+            tables = {};
+            for (let i = 1; i <= 25; i++) {
+                tables[i] = { orderList: [] };
+                if (cloudTables[i]) {
+                    if (cloudTables[i].orderList) {
+                        tables[i].orderList = Array.isArray(cloudTables[i].orderList) 
+                            ? cloudTables[i].orderList 
+                            : Object.values(cloudTables[i].orderList);
+                    }
+                }
             }
             
             revenueHistory = data.revenueHistory || {};
             if (!revenueHistory[todayStr]) revenueHistory[todayStr] = 0;
-            recentBills = data.recentBills || [];
+            
+            // Ép dữ liệu hóa đơn gần đây về mảng thuần túy JS
+            if (data.recentBills) {
+                recentBills = Array.isArray(data.recentBills) ? data.recentBills : Object.values(data.recentBills);
+                recentBills.forEach(bill => {
+                    if (bill.orderList) {
+                        bill.orderList = Array.isArray(bill.orderList) ? bill.orderList : Object.values(bill.orderList);
+                    }
+                });
+            } else {
+                recentBills = [];
+            }
 
-            // Thông báo kết nối thành công khi dữ liệu online được đồng bộ về máy
             document.getElementById("net-status").textContent = "💚 Đám mây đồng bộ trực tuyến";
             document.getElementById("net-status").style.color = "#2ec4b6";
             
@@ -381,11 +396,10 @@
             updateRevenueDisplay();
             if (currentTableId) renderOrderList();
         }, (error) => {
-            document.getElementById("net-status").textContent = "❌ Lỗi kết nối đám mây! (Kiểm tra lại Rules của Firebase)";
+            document.getElementById("net-status").textContent = "❌ Lỗi kết nối đám mây! (Kiểm tra lại Rules)";
             document.getElementById("net-status").style.color = "#e71d36";
         });
 
-        // Hàm đẩy dữ liệu đồng bộ lên đám mây khi có thay đổi hành động bấm nút
         function pushDataToCloud() {
             db.ref('tino_coffee_store').set({
                 tables: tables,
@@ -537,7 +551,6 @@
             pushDataToCloud(); 
         }
 
-        // Bấm nút thanh toán đẩy quỹ tiền lên đám mây lưu trữ
         function checkoutTable() {
             if (!currentTableId) return;
             const currentOrder = tables[currentTableId].orderList;
