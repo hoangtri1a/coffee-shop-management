@@ -33,16 +33,49 @@
             background-color: var(--primary-color);
             color: white;
             border-radius: 8px;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
 
         .revenue-box {
             background-color: rgba(255, 255, 255, 0.2);
-            padding: 8px;
+            padding: 6px;
             border-radius: 5px;
             margin-top: 8px;
             font-weight: bold;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
+        }
+
+        /* THANH CHUYỂN TAB (3 TAB RIÊNG BIỆT) */
+        .tab-bar {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+
+        .tab-nav-btn {
+            padding: 12px 5px;
+            background-color: #e0dbd5;
+            border: none;
+            font-weight: bold;
+            color: var(--dark-color);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .tab-nav-btn.active-tab-nav {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active-tab-view {
+            display: block;
         }
 
         .main-layout {
@@ -51,7 +84,7 @@
             gap: 15px;
         }
 
-        /* Danh sách bàn */
+        /* Sơ đồ bàn */
         .tables-section {
             background: white;
             padding: 15px;
@@ -92,7 +125,7 @@
             transform: scale(1.05);
         }
 
-        /* Khu vực order */
+        /* Gọi món */
         .order-section {
             background: white;
             padding: 15px;
@@ -100,10 +133,6 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
             display: flex;
             flex-direction: column;
-        }
-
-        .menu-selector {
-            margin-bottom: 15px;
         }
 
         .takeaway-option {
@@ -118,41 +147,21 @@
             cursor: pointer;
         }
 
-        .takeaway-option input {
-            width: 22px;
-            height: 22px;
-            cursor: pointer;
-        }
+        .takeaway-option input { width: 22px; height: 22px; cursor: pointer; }
+        .takeaway-option label { font-weight: bold; cursor: pointer; font-size: 0.95rem; }
 
-        .takeaway-option label {
-            font-weight: bold;
-            color: var(--dark-color);
-            cursor: pointer;
-            font-size: 0.95rem;
-        }
-
-        select, button {
+        select, .btn-action {
             width: 100%;
             padding: 12px;
             margin-top: 5px;
             border-radius: 6px;
             border: 1px solid #ccc;
             font-size: 1rem;
-        }
-
-        button {
-            cursor: pointer;
             font-weight: bold;
         }
 
-        .btn-add {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            margin-top: 5px;
-        }
+        .btn-add { background-color: var(--primary-color); color: white; border: none; cursor: pointer; }
 
-        /* Danh sách món ăn trong bàn */
         .order-list {
             flex-grow: 1;
             margin-top: 15px;
@@ -177,102 +186,86 @@
             padding: 2px 6px;
             border-radius: 4px;
             margin-left: 5px;
-            display: inline-block;
-            vertical-align: middle;
-        }
-
-        .item-controls {
-            display: flex;
-            align-items: center;
-            gap: 8px;
         }
 
         .btn-qty {
             width: 28px;
             height: 28px;
-            padding: 0;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             background-color: #e0e0e0;
             border: none;
             border-radius: 4px;
-        }
-
-        .checkout-box {
-            margin-top: 15px;
-        }
-
-        .total-price {
-            font-size: 1.3rem;
             font-weight: bold;
-            text-align: right;
-            margin-bottom: 10px;
-            color: var(--dark-color);
+            cursor: pointer;
         }
 
-        .btn-pay {
-            background-color: var(--success-color);
-            color: white;
-            border: none;
-            font-size: 1.1rem;
-        }
+        .total-price { font-size: 1.3rem; font-weight: bold; text-align: right; margin-bottom: 10px; }
+        .btn-pay { background-color: var(--success-color); color: white; border: none; font-size: 1.1rem; cursor: pointer; }
 
-        /* Bố cục khu vực lịch sử phía dưới */
-        .bottom-layout {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .history-section, .recent-bills-section {
+        /* Card hiển thị thông tin */
+        .card-view {
             background: white;
             padding: 15px;
             border-radius: 8px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin-bottom: 15px;
         }
 
-        .scroll-list {
-            margin-top: 10px;
-            max-height: 250px;
-            overflow-y: auto;
+        .scroll-list { margin-top: 10px; max-height: 320px; overflow-y: auto; }
+        .history-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; }
+        .history-item:nth-child(even) { background-color: #fcfbfa; }
+
+        /* Giao diện 5 hóa đơn chi tiết */
+        .bill-item {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            background-color: #fff;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            border-left: 4px solid var(--success-color);
         }
 
-        .history-item, .bill-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .bill-header { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 6px; }
+        .bill-details { font-size: 0.85rem; color: #555; padding-left: 5px; line-height: 1.4; }
+        .btn-undo { background-color: var(--danger-color); color: white; border: none; padding: 4px 8px; font-size: 0.8rem; border-radius: 4px; cursor: pointer; font-weight: bold; }
+
+        /* CSS Khu vực QR Code */
+        .qr-display-box {
+            text-align: center;
+            padding: 20px;
+            background-color: #fff;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        #qrcode-canvas-target {
+            margin: 15px auto;
+            display: block;
+            background: white;
             padding: 10px;
-            border-bottom: 1px solid #eee;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
-        .history-item:nth-child(even), .bill-item:nth-child(even) {
-            background-color: #fcfbfa;
-        }
-
-        .btn-undo {
-            background-color: var(--danger-color);
+        .btn-generator-qr {
+            background-color: var(--active-color);
             color: white;
             border: none;
-            padding: 5px 10px;
-            font-size: 0.8rem;
-            width: auto;
-            margin: 0;
-            border-radius: 4px;
+            padding: 12px;
+            font-size: 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
         }
 
-        /* Responsive cho điện thoại */
+        .btn-backup { background-color: #2b2d42; color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; }
+
         @media (max-width: 768px) {
-            .main-layout, .bottom-layout {
-                grid-template-columns: 1fr;
-            }
-            .tables-grid {
-                grid-template-columns: repeat(4, 1fr);
-            }
+            .main-layout { grid-template-columns: 1fr; }
+            .tables-grid { grid-template-columns: repeat(4, 1fr); }
         }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4wOnAhZBGo4HdY5pLkuGpXI2V3LEln4TX4+34xlRuzpEXFA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 <body>
 
@@ -281,129 +274,133 @@
         <div class="revenue-box">Doanh thu hôm nay (<span id="today-date">--/--/----</span>): <span id="daily-revenue">0</span>đ</div>
     </header>
 
-    <div class="main-layout">
-        <div class="tables-section">
-            <h3>Sơ đồ bàn (25 bàn)</h3>
-            <div class="tables-grid" id="tables-container">
-                </div>
-        </div>
+    <div class="tab-bar">
+        <button id="nav-pos" class="tab-nav-btn active-tab-nav" onclick="switchTab('pos')">⚡ BÁN HÀNG</button>
+        <button id="nav-stats" class="tab-nav-btn" onclick="switchTab('stats')">📊 THỐNG KÊ</button>
+        <button id="nav-backup" class="tab-nav-btn" onclick="switchTab('backup')">💾 SAO LƯU & QR</button>
+    </div>
 
-        <div class="order-section">
-            <h3 id="order-title">Vui lòng chọn bàn...</h3>
-            
-            <div id="order-controls" style="display: none;">
-                <div class="menu-selector">
-                    <label for="menu-select">Chọn món ăn/nước uống:</label>
-                    <select id="menu-select">
-                        </select>
-                    
-                    <div class="takeaway-option" onclick="toggleCheckbox(event)">
-                        <input type="checkbox" id="takeaway-checkbox">
-                        <label for="takeaway-checkbox">🥡 Mua mang đi (Take-away)</label>
+    <div id="tab-pos" class="tab-content active-tab-view">
+        <div class="main-layout">
+            <div class="tables-section">
+                <h3>Sơ đồ bàn (25 bàn)</h3>
+                <div class="tables-grid" id="tables-container"></div>
+            </div>
+
+            <div class="order-section">
+                <h3 id="order-title">Vui lòng chọn bàn...</h3>
+                <div id="order-controls" style="display: none;">
+                    <div class="menu-selector">
+                        <label for="menu-select">Chọn món ăn/nước uống:</label>
+                        <select id="menu-select"></select>
+                        <div class="takeaway-option" onclick="toggleCheckbox(event)">
+                            <input type="checkbox" id="takeaway-checkbox">
+                            <label for="takeaway-checkbox">🥡 Mua mang đi (Take-away)</label>
+                        </div>
+                        <button class="btn-action btn-add" onclick="addItemToTable()">Thêm món vào bàn</button>
                     </div>
-
-                    <button class="btn-add" onclick="addItemToTable()">Thêm món vào bàn</button>
-                </div>
-
-                <h4>Món đã gọi:</h4>
-                <div class="order-list" id="current-order-list">
+                    <h4>Món đã gọi:</h4>
+                    <div class="order-list" id="current-order-list"></div>
+                    <div class="checkout-box">
+                        <div class="total-price">Tổng cộng: <span id="table-total">0</span>đ</div>
+                        <button class="btn-action btn-pay" onclick="checkoutTable()">Thanh Toán & Trả Bàn</button>
                     </div>
-
-                <div class="checkout-box">
-                    <div class="total-price">Tổng cộng: <span id="table-total">0</span>đ</div>
-                    <button class="btn-pay" onclick="checkoutTable()">Thanh Toán & Trả Bàn</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="bottom-layout">
-        <div class="recent-bills-section">
-            <h3>Hóa đơn vừa thanh toán (Có thể hủy sửa sai)</h3>
-            <div class="scroll-list" id="recent-bills-container">
-                </div>
+    <div id="tab-stats" class="tab-content">
+        <div class="card-view">
+            <h3>5 hóa đơn gần nhất (Có thể Hủy sửa sai)</h3>
+            <div class="scroll-list" id="recent-bills-container"></div>
+        </div>
+        <div class="card-view">
+            <h3>Lịch sử doanh thu 30 ngày</h3>
+            <div class="scroll-list" id="history-container"></div>
+        </div>
+    </div>
+
+    <div id="tab-backup" class="tab-content">
+        <div class="card-view">
+            <h3>Chuyển dữ liệu qua máy khác / iPad bằng mã QR</h3>
+            <p style="font-size:0.85rem; color:#666; margin-top:5px; line-height:1.4;">
+                Bấm nút dưới đây để tạo mã QR chứa dữ liệu. Sau đó, dùng <strong>ứng dụng Camera gốc của iPad cũ</strong> quét mã này để chuyển dữ liệu sang ngay lập tức mà không cần iCloud.
+            </p>
+            <button class="btn-generator-qr" style="margin-top:10px;" onclick="generateSyncQR()">🔄 BẤM ĐỂ TẠO MÃ QR ĐỒNG BỘ</button>
+            
+            <div class="qr-display-box" id="qr-display-area" style="display:none;">
+                <h4 style="color:var(--primary-color);">QUÉT MÃ NÀY TRÊN IPAD ĐỂ ĐỒNG BỘ</h4>
+                <div id="qrcode-target"></div>
+                <p style="font-size:0.8rem; color:#e71d36; font-weight:bold; margin-top:8px;">Lưu ý: Mã này sẽ ghi đè và thay thế toàn bộ dữ liệu trên iPad.</p>
+            </div>
         </div>
 
-        <div class="history-section">
-            <h3>Lịch sử doanh thu (Tối đa 30 ngày)</h3>
-            <div class="scroll-list" id="history-container">
-                </div>
+        <div class="card-view">
+            <h3>Sao lưu file dự phòng (.json)</h3>
+            <p style="font-size:0.85rem; color:#666; margin-top:5px; margin-bottom:10px;">Tải file dữ liệu này về cất vào Zalo Cloud hoặc Drive phòng khi điện thoại bị hỏng hoàn toàn.</p>
+            <button class="btn-backup" onclick="exportDataToJSON()">📥 Tải File Sao Lưu Hệ Thống</button>
+            <div style="margin-top:15px; border-top:1px solid #eee; padding-top:15px;">
+                <label style="font-weight:bold; font-size:0.95rem; display:block; margin-bottom:5px;">Khôi phục dữ liệu từ file đã lưu:</label>
+                <input type="file" id="import-file-input" accept=".json" onchange="importDataFromJSON(event)">
+            </div>
         </div>
     </div>
 
     <script>
-        // Dữ liệu Menu gốc đầy đủ + Bò Húc
+        // Danh mục menu chuẩn của quán để ánh xạ nén dữ liệu cực ngắn gọn
+        const itemIdsList = [
+            "cf_den_phin", "cf_sua_phin", "cf_den_may", "cf_sua_may", "cf_den_sg", "cf_sua_sg", "bac_xiu", "bac_xiu_muoi", "cf_muoi",
+            "cacao_da_nong", "tra_gung", "cacao_muoi", "sua_chua_da", "sua_chua_dau", "sua_chua_viet_quat", "sua_chua_dao",
+            "khoang", "khoang_sua", "sting_vang", "sting_dau", "bo_huc", "tra_chanh_dau", "tra_dao_tt", "tra_chanh_vq", "tra_chanh_tt",
+            "nuoc_ep_cam", "nuoc_ep_ca_rot", "nuoc_ep_thom", "sinh_to_bo", "chanh_tuoi_xi_muoi", "cacao_da_xay", "da_xay_vq", "da_xay_dau"
+        ];
+
         const menuData = [
             { category: "CÀ PHÊ", items: [
-                { id: "cf_den_phin", name: "Cafe Đen (Phin)", price: 15000 },
-                { id: "cf_sua_phin", name: "Cafe Sữa (Phin)", price: 17000 },
-                { id: "cf_den_may", name: "Cafe Đen Máy", price: 17000 },
-                { id: "cf_sua_may", name: "Cafe Sữa Máy", price: 20000 },
-                { id: "cf_den_sg", name: "Cafe Đen Sài Gòn", price: 22000 },
-                { id: "cf_sua_sg", name: "Cafe Sữa Sài Gòn", price: 25000 },
-                { id: "bac_xiu", name: "Bạc Xỉu", price: 25000 },
-                { id: "bac_xiu_muoi", name: "Bạc Xỉu Muối", price: 30000 },
-                { id: "cf_muoi", name: "Cà Phê Muối", price: 27000 }
+                { id: "cf_den_phin", name: "Cafe Đen (Phin)", price: 15000 }, { id: "cf_sua_phin", name: "Cafe Sữa (Phin)", price: 17000 },
+                { id: "cf_den_may", name: "Cafe Đen Máy", price: 17000 }, { id: "cf_sua_may", name: "Cafe Sữa Máy", price: 20000 },
+                { id: "cf_den_sg", name: "Cafe Đen Sài Gòn", price: 22000 }, { id: "cf_sua_sg", name: "Cafe Sữa Sài Gòn", price: 25000 },
+                { id: "bac_xiu", name: "Bạc Xỉu", price: 25000 }, { id: "bac_xiu_muoi", name: "Bạc Xỉu Muối", price: 30000 }, { id: "cf_muoi", name: "Cà Phê Muối", price: 27000 }
             ]},
             { category: "NON-CAFE", items: [
-                { id: "cacao_da_nong", name: "Cacao Đá/Nóng", price: 27000 },
-                { id: "tra_gung", name: "Trà Gừng", price: 25000 },
-                { id: "cacao_muoi", name: "Cacao Muối", price: 32000 }
+                { id: "cacao_da_nong", name: "Cacao Đá/Nóng", price: 27000 }, { id: "tra_gung", name: "Trà Gừng", price: 25000 }, { id: "cacao_muoi", name: "Cacao Muối", price: 32000 }
             ]},
             { category: "SỮA CHUA", items: [
-                { id: "sua_chua_da", name: "Sữa Chua Đá", price: 22000 },
-                { id: "sua_chua_dau", name: "Sữa Chua Dâu", price: 27000 },
-                { id: "sua_chua_viet_quat", name: "Sữa Chua Việt Quất", price: 27000 },
-                { id: "sua_chua_dao", name: "Sữa Chua Đào", price: 27000 }
+                { id: "sua_chua_da", name: "Sữa Chua Đá", price: 22000 }, { id: "sua_chua_dau", name: "Sữa Chua Dâu", price: 27000 },
+                { id: "sua_chua_viet_quat", name: "Sữa Chua Việt Quất", price: 27000 }, { id: "sua_chua_dao", name: "Sữa Chua Đào", price: 27000 }
             ]},
             { category: "NƯỚC GIẢI KHÁT", items: [
-                { id: "khoang", name: "Khoáng", price: 15000 },
-                { id: "khoang_sua", name: "Khoáng Sữa", price: 17000 },
-                { id: "sting_vang", name: "Sting Vàng", price: 16000 },
-                { id: "sting_dau", name: "Sting Dâu", price: 17000 },
-                { id: "bo_huc", name: "Bò Húc", price: 22000 }
+                { id: "khoang", name: "Khoáng", price: 15000 }, { id: "khoang_sua", name: "Khoáng Sữa", price: 17000 },
+                { id: "sting_vang", name: "Sting Vàng", price: 16000 }, { id: "sting_dau", name: "Sting Dâu", price: 17000 }, { id: "bo_huc", name: "Bò Húc", price: 22000 }
             ]},
             { category: "TRÀ TRÁI CÂY", items: [
-                { id: "tra_chanh_dau", name: "Trà Chanh Dâu", price: 25000 },
-                { id: "tra_dao_tt", name: "Trà Đào Truyền Thống", price: 27000 },
-                { id: "tra_chanh_vq", name: "Trà Chanh Việt Quất", price: 25000 },
-                { id: "tra_chanh_tt", name: "Trà Chanh Truyền Thống", price: 22000 }
+                { id: "tra_chanh_dau", name: "Trà Chanh Dâu", price: 25000 }, { id: "tra_dao_tt", name: "Trà Đào Truyền Thống", price: 27000 },
+                { id: "tra_chanh_vq", name: "Trà Chanh Việt Quất", price: 25000 }, { id: "tra_chanh_tt", name: "Trà Chanh Truyền Thống", price: 22000 }
             ]},
             { category: "NƯỚC TRÁI CÂY", items: [
-                { id: "nuoc_ep_cam", name: "Nước Ép Cam", price: 25000 },
-                { id: "nuoc_ep_ca_rot", name: "Nước Ép Cà Rốt", price: 25000 },
-                { id: "nuoc_ep_thom", name: "Nước Ép Thơm", price: 25000 },
-                { id: "sinh_to_bo", name: "Sinh Tố Bơ", price: 30000 },
-                { id: "chanh_tuoi_xi_muoi", name: "Nước Chanh Tươi Xí Muội", price: 22000 }
+                { id: "nuoc_ep_cam", name: "Nước Ép Cam", price: 25000 }, { id: "nuoc_ep_ca_rot", name: "Nước Ép Cà Rốt", price: 25000 },
+                { id: "nuoc_ep_thom", name: "Nước Ép Thơm", price: 25000 }, { id: "sinh_to_bo", name: "Sinh Tố Bơ", price: 30000 }, { id: "chanh_tuoi_xi_muoi", name: "Nước Chanh Tươi Xí Muội", price: 22000 }
             ]},
             { category: "ĐÁ XAY", items: [
-                { id: "cacao_da_xay", name: "Cacao Đá Xay", price: 32000 },
-                { id: "da_xay_vq", name: "Đá Xay Việt Quất", price: 32000 },
-                { id: "da_xay_dau", name: "Đá Xay Dâu", price: 32000 }
+                { id: "cacao_da_xay", name: "Cacao Đá Xay", price: 32000 }, { id: "da_xay_vq", name: "Đá Xay Việt Quất", price: 32000 }, { id: "da_xay_dau", name: "Đá Xay Dâu", price: 32000 }
             ]}
         ];
 
         let currentTableId = null;
-        // Sử dụng phiên bản lưu trữ v4 để tích hợp tính năng Hủy hóa đơn nhầm lẫn
-        let tables = JSON.parse(localStorage.getItem('tino_tables_v4')) || {};
-        let revenueHistory = JSON.parse(localStorage.getItem('tino_revenue_history_v4')) || {};
-        let recentBills = JSON.parse(localStorage.getItem('tino_recent_bills_v4')) || [];
+        let tables = JSON.parse(localStorage.getItem('tino_tables_v5')) || {};
+        let revenueHistory = JSON.parse(localStorage.getItem('tino_revenue_history_v5')) || {};
+        let recentBills = JSON.parse(localStorage.getItem('tino_recent_bills_v5')) || [];
 
         function getTodayString() {
             const d = new Date();
-            const day = String(d.getDate()).padStart(2, '0');
-            const month = String(d.getMonth() + 1).padStart(2, '0');
-            const year = d.getFullYear();
-            return `${day}/${month}/${year}`;
+            return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
         }
-
         const todayStr = getTodayString();
 
         if (Object.keys(tables).length === 0) {
-            for (let i = 1; i <= 25; i++) {
-                tables[i] = { orderList: [] };
-            }
-            localStorage.setItem('tino_tables_v4', JSON.stringify(tables));
+            for (let i = 1; i <= 25; i++) tables[i] = { orderList: [] };
+            localStorage.setItem('tino_tables_v5', JSON.stringify(tables));
         }
 
         if (!revenueHistory[todayStr]) {
@@ -411,67 +408,86 @@
             saveHistoryToStorage();
         }
 
+        // BỘ NHẬN DIỆN DỮ LIỆU ĐỒNG BỘ TỪ QR KHI MỞ LINK TRÊN IPAD
+        if (window.location.hash.startsWith('#sync=')) {
+            let base64Data = window.location.hash.replace('#sync=', '');
+            let decoded = decompressData(base64Data);
+            if (decoded) {
+                if (confirm("Phát hiện gói dữ liệu chuyển từ máy khác qua mã QR!\n\nBạn có muốn GHI ĐÈ toàn bộ doanh thu và trạng thái bàn ghế hiện tại trên máy này không?")) {
+                    localStorage.setItem('tino_tables_v5', JSON.stringify(decoded.tables));
+                    localStorage.setItem('tino_revenue_history_v5', JSON.stringify(decoded.revenueHistory));
+                    localStorage.setItem('tino_recent_bills_v5', JSON.stringify(decoded.recentBills));
+                    alert("Đồng bộ thành công! Ứng dụng sẽ khởi động lại.");
+                    window.location.hash = '';
+                    window.location.reload();
+                } else {
+                    window.location.hash = '';
+                }
+            } else {
+                alert("Mã dữ liệu QR lỗi hoặc không đúng định dạng!");
+                window.location.hash = '';
+            }
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("today-date").textContent = todayStr;
             renderTables();
             initMenuSelect();
             updateRevenueDisplay();
-            renderHistory();
-            renderRecentBills();
         });
 
-        function saveTablesToStorage() {
-            localStorage.setItem('tino_tables_v4', JSON.stringify(tables));
+        // HÀM CHUYỂN TAB 
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active-tab-view'));
+            document.querySelectorAll('.tab-nav-btn').forEach(el => el.classList.remove('active-tab-nav'));
+            
+            if (tabName === 'pos') {
+                document.getElementById('tab-pos').classList.add('active-tab-view');
+                document.getElementById('nav-pos').classList.add('active-tab-nav');
+            } else if (tabName === 'stats') {
+                document.getElementById('tab-stats').classList.add('active-tab-view');
+                document.getElementById('nav-stats').classList.add('active-tab-nav');
+                renderHistory();
+                renderRecentBills();
+            } else {
+                document.getElementById('tab-backup').classList.add('active-tab-view');
+                document.getElementById('nav-backup').classList.add('active-tab-nav');
+            }
         }
 
+        function saveTablesToStorage() { localStorage.setItem('tino_tables_v5', JSON.stringify(tables)); }
         function saveHistoryToStorage() {
             const sortedDates = Object.keys(revenueHistory).sort((a, b) => {
-                const partsA = a.split('/');
-                const partsB = b.split('/');
-                return new Date(partsB[2], partsB[1] - 1, partsB[0]) - new Date(partsA[2], partsA[1] - 1, partsA[0]);
+                const pA = a.split('/'); const pB = b.split('/');
+                return new Date(pB[2], pB[1] - 1, pB[0]) - new Date(pA[2], pA[1] - 1, pA[0]);
             });
-
-            while (sortedDates.length > 30) {
-                const oldestDate = sortedDates.pop();
-                delete revenueHistory[oldestDate];
-            }
-
-            localStorage.setItem('tino_revenue_history_v4', JSON.stringify(revenueHistory));
+            while (sortedDates.length > 30) { const oldest = sortedDates.pop(); delete revenueHistory[oldest]; }
+            localStorage.setItem('tino_revenue_history_v5', JSON.stringify(revenueHistory));
         }
 
         function renderTables() {
-            const container = document.getElementById("tables-container");
-            container.innerHTML = "";
+            const container = document.getElementById("tables-container"); container.innerHTML = "";
             for (let i = 1; i <= 25; i++) {
                 const btn = document.createElement("button");
-                btn.className = "table-btn";
-                btn.id = `table-${i}`;
-                
+                btn.className = "table-btn"; btn.id = `table-${i}`;
                 if (tables[i].orderList.length > 0) {
                     btn.classList.add("active-table");
                     btn.innerHTML = `<div>Bàn ${i}</div><small style="font-size:0.7rem;">Có khách</small>`;
                 } else {
                     btn.innerHTML = `<div>Bàn ${i}</div><small style="color:#aaa; font-size:0.7rem;">Trống</small>`;
                 }
-
-                if (currentTableId == i) {
-                    btn.classList.add("selected-now");
-                }
-
+                if (currentTableId == i) btn.classList.add("selected-now");
                 btn.onclick = () => selectTable(i);
                 container.appendChild(btn);
             }
         }
 
         function initMenuSelect() {
-            const select = document.getElementById("menu-select");
-            select.innerHTML = ""; 
+            const select = document.getElementById("menu-select"); select.innerHTML = "";
             menuData.forEach(cat => {
-                const group = document.createElement("optgroup");
-                group.label = cat.category;
+                const group = document.createElement("optgroup"); group.label = cat.category;
                 cat.items.forEach(item => {
-                    const opt = document.createElement("option");
-                    opt.value = JSON.stringify(item);
+                    const opt = document.createElement("option"); opt.value = JSON.stringify(item);
                     opt.textContent = `${item.name} - ${(item.price/1000)}k`;
                     group.appendChild(opt);
                 });
@@ -480,57 +496,40 @@
         }
 
         function updateRevenueDisplay() {
-            const currentTodayRevenue = revenueHistory[todayStr] || 0;
-            document.getElementById("daily-revenue").textContent = currentTodayRevenue.toLocaleString('vi-VN');
+            document.getElementById("daily-revenue").textContent = (revenueHistory[todayStr] || 0).toLocaleString('vi-VN');
         }
 
         function renderHistory() {
-            const container = document.getElementById("history-container");
-            container.innerHTML = "";
-
+            const container = document.getElementById("history-container"); container.innerHTML = "";
             const sortedDates = Object.keys(revenueHistory).sort((a, b) => {
-                const partsA = a.split('/');
-                const partsB = b.split('/');
-                return new Date(partsB[2], partsB[1] - 1, partsB[0]) - new Date(partsA[2], partsA[1] - 1, partsA[0]);
+                const pA = a.split('/'); const pB = b.split('/');
+                return new Date(pB[2], pB[1] - 1, pB[0]) - new Date(pA[2], pA[1] - 1, pA[0]);
             });
-
-            if (sortedDates.length === 0) {
-                container.innerHTML = `<div style="color:#aaa; padding: 10px; text-align:center;">Chưa có dữ liệu</div>`;
-                return;
-            }
-
+            if (sortedDates.length === 0) { container.innerHTML = `<div style="color:#aaa; text-align:center;">Chưa có dữ liệu</div>`; return; }
             sortedDates.forEach(date => {
-                const div = document.createElement("div");
-                div.className = "history-item";
-                div.innerHTML = `
-                    <span>📅 Ngày <strong>${date}</strong> ${date === todayStr ? '<small style="color:var(--active-color)">(Hôm nay)</small>' : ''}</span>
-                    <span style="font-weight:bold; color:var(--primary-color);">${revenueHistory[date].toLocaleString('vi-VN')}đ</span>
-                `;
+                const div = document.createElement("div"); div.className = "history-item";
+                div.innerHTML = `<span>📅 Ngày <strong>${date}</strong> ${date === todayStr ? '<small style="color:var(--active-color)">(Hôm nay)</small>' : ''}</span>
+                                 <span style="font-weight:bold; color:var(--primary-color);">${revenueHistory[date].toLocaleString('vi-VN')}đ</span>`;
                 container.appendChild(div);
             });
         }
 
-        // Tạo danh sách hiển thị các hóa đơn vừa thanh toán để có thể ấn Hủy sửa sai
         function renderRecentBills() {
-            const container = document.getElementById("recent-bills-container");
-            container.innerHTML = "";
-
-            if (recentBills.length === 0) {
-                container.innerHTML = `<div style="color:#aaa; padding: 10px; text-align:center;">Chưa có hóa đơn nào vừa thanh toán</div>`;
-                return;
-            }
-
+            const container = document.getElementById("recent-bills-container"); container.innerHTML = "";
+            if (recentBills.length === 0) { container.innerHTML = `<div style="color:#aaa; text-align:center; padding:10px;">Chưa có hóa đơn nào gần đây</div>`; return; }
+            
             recentBills.forEach(bill => {
-                const div = document.createElement("div");
-                div.className = "bill-item";
+                const div = document.createElement("div"); div.className = "bill-item";
+                let itemsDetailHTML = bill.orderList.map(i => `• ${i.name}${i.isTakeAway?' (Mang đi)':''} x${i.qty} - ${(i.price*i.qty).toLocaleString('vi-VN')}đ`).join('<br>');
+                
                 div.innerHTML = `
-                    <div>
-                        <strong>Bàn ${bill.tableId}</strong> - <small style="color:#666;">${bill.time}</small><br>
-                        <small style="color:#888;">${bill.summary}</small>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <span style="font-weight:bold; color:var(--danger-color);">${bill.total.toLocaleString('vi-VN')}đ</span>
+                    <div class="bill-header">
+                        <span>Bàn ${bill.tableId} <small style="color:#666; font-weight:normal;">(${bill.time})</small></span>
                         <button class="btn-undo" onclick="undoCheckout(${bill.id})">Hủy</button>
+                    </div>
+                    <div class="bill-details">
+                        ${itemsDetailHTML}
+                        <div style="text-align:right; font-weight:bold; color:var(--danger-color); margin-top:4px;">Tổng: ${bill.total.toLocaleString('vi-VN')}đ</div>
                     </div>
                 `;
                 container.appendChild(div);
@@ -541,143 +540,69 @@
             currentTableId = tableId;
             document.querySelectorAll('.table-btn').forEach(b => b.classList.remove('selected-now'));
             document.getElementById(`table-${tableId}`).classList.add('selected-now');
-
             document.getElementById("order-title").textContent = `Đang chọn: BÀN ${tableId}`;
             document.getElementById("order-controls").style.display = "block";
-
             renderOrderList();
         }
 
         function renderOrderList() {
-            const listContainer = document.getElementById("current-order-list");
-            listContainer.innerHTML = "";
-            
+            const listContainer = document.getElementById("current-order-list"); listContainer.innerHTML = "";
             if (!currentTableId) return;
-
-            const currentOrder = tables[currentTableId].orderList;
-            let total = 0;
-
+            const currentOrder = tables[currentTableId].orderList; let total = 0;
             currentOrder.forEach((item, index) => {
-                const itemTotal = item.price * item.qty;
-                total += itemTotal;
-
-                const div = document.createElement("div");
-                div.className = "order-item";
-                div.innerHTML = `
-                    <div>
-                        <strong>${item.name}${item.isTakeAway ? '<span class="badge-takeaway">Mang đi</span>' : ''}</strong><br>
-                        <small style="color:#666">${item.price.toLocaleString('vi-VN')}đ</small>
-                    </div>
+                const itemTotal = item.price * item.qty; total += itemTotal;
+                const div = document.createElement("div"); div.className = "order-item";
+                div.innerHTML = `<div><strong>${item.name}${item.isTakeAway ? '<span class="badge-takeaway">Mang đi</span>' : ''}</strong><br><small style="color:#666">${item.price.toLocaleString('vi-VN')}đ</small></div>
                     <div class="item-controls">
-                        <button class="btn-qty" onclick="changeQty(${index}, -1)">-</button>
-                        <span>${item.qty}</span>
-                        <button class="btn-qty" onclick="changeQty(${index}, 1)">+</button>
+                        <button class="btn-qty" onclick="changeQty(${index}, -1)">-</button><span>${item.qty}</span><button class="btn-qty" onclick="changeQty(${index}, 1)">+</button>
                         <span style="font-weight:bold; margin-left:10px;">${itemTotal.toLocaleString('vi-VN')}đ</span>
-                    </div>
-                `;
+                    </div>`;
                 listContainer.appendChild(div);
             });
-
             document.getElementById("table-total").textContent = total.toLocaleString('vi-VN');
         }
 
-        function toggleCheckbox(e) {
-            if (e.target.tagName !== 'INPUT') {
-                const cb = document.getElementById("takeaway-checkbox");
-                cb.checked = !cb.checked;
-            }
-        }
+        function toggleCheckbox(e) { if (e.target.tagName !== 'INPUT') { const cb = document.getElementById("takeaway-checkbox"); cb.checked = !cb.checked; } }
 
         function addItemToTable() {
             if (!currentTableId) return;
-
-            const select = document.getElementById("menu-select");
-            const itemInfo = JSON.parse(select.value);
+            const select = document.getElementById("menu-select"); const itemInfo = JSON.parse(select.value);
             const isTakeAway = document.getElementById("takeaway-checkbox").checked;
-            
             const currentOrder = tables[currentTableId].orderList;
             const existingItem = currentOrder.find(i => i.id === itemInfo.id && (i.isTakeAway || false) === isTakeAway);
-
-            if (existingItem) {
-                existingItem.qty += 1;
-            } else {
-                currentOrder.push({
-                    id: itemInfo.id,
-                    name: itemInfo.name,
-                    price: itemInfo.price,
-                    qty: 1,
-                    isTakeAway: isTakeAway
-                });
-            }
-
+            if (existingItem) { existingItem.qty += 1; } else { currentOrder.push({ id: itemInfo.id, name: itemInfo.name, price: itemInfo.price, qty: 1, isTakeAway: isTakeAway }); }
             document.getElementById("takeaway-checkbox").checked = false;
-
-            saveTablesToStorage();
-            renderTables();
-            renderOrderList();
+            saveTablesToStorage(); renderTables(); renderOrderList();
         }
 
         function changeQty(index, change) {
-            const currentOrder = tables[currentTableId].orderList;
-            currentOrder[index].qty += change;
-
-            if (currentOrder[index].qty <= 0) {
-                currentOrder.splice(index, 1);
-            }
-
-            saveTablesToStorage();
-            renderTables();
-            renderOrderList();
+            const currentOrder = tables[currentTableId].orderList; currentOrder[index].qty += change;
+            if (currentOrder[index].qty <= 0) currentOrder.splice(index, 1);
+            saveTablesToStorage(); renderTables(); renderOrderList();
         }
 
         function checkoutTable() {
             if (!currentTableId) return;
-
             const currentOrder = tables[currentTableId].orderList;
-            if (currentOrder.length === 0) {
-                alert("Bàn này chưa gọi món nào để thanh toán!");
-                return;
-            }
-
+            if (currentOrder.length === 0) { alert("Bàn này chưa gọi món!"); return; }
             let total = currentOrder.reduce((sum, item) => sum + (item.price * item.qty), 0);
             
-            if (confirm(`Xác nhận thanh toán Bàn ${currentTableId}\nTổng tiền: ${total.toLocaleString('vi-VN')}đ?\nBàn sẽ tự động reset sau khi hoàn tất.`)) {
-                
-                const activeTodayStr = getTodayString();
-                const now = new Date();
+            if (confirm(`Xác nhận thanh toán Bàn ${currentTableId}\nTổng tiền: ${total.toLocaleString('vi-VN')}đ?`)) {
+                const activeTodayStr = getTodayString(); const now = new Date();
                 const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
                 
-                // Chuỗi tóm tắt món ăn để hiển thị ở mục Hủy sửa sai
-                const summaryStr = currentOrder.map(i => `${i.name}${i.isTakeAway?'(MĐ)':''}(x${i.qty})`).join(', ');
-
-                // Ghi vết hóa đơn vừa thanh toán vào top danh sách
                 recentBills.unshift({
-                    id: Date.now(),
-                    tableId: currentTableId,
-                    total: total,
-                    summary: summaryStr,
-                    time: timeStr,
-                    date: activeTodayStr,
-                    orderList: JSON.parse(JSON.stringify(currentOrder)) // copy sâu mảng món ăn
+                    id: Date.now(), tableId: currentTableId, total: total, time: timeStr, date: activeTodayStr,
+                    orderList: JSON.parse(JSON.stringify(currentOrder))
                 });
 
-                // Giới hạn chỉ giữ lại 15 hóa đơn vừa thanh toán gần nhất để tránh nặng bộ nhớ
-                if (recentBills.length > 15) recentBills.pop();
-                localStorage.setItem('tino_recent_bills_v4', JSON.stringify(recentBills));
+                if (recentBills.length > 5) recentBills.pop();
+                localStorage.setItem('tino_recent_bills_v5', JSON.stringify(recentBills));
 
-                // Cộng doanh thu ngày
                 revenueHistory[activeTodayStr] = (revenueHistory[activeTodayStr] || 0) + total;
-                
-                // Reset bàn về trống
                 tables[currentTableId].orderList = [];
                 
-                saveTablesToStorage();
-                saveHistoryToStorage();
-                
-                updateRevenueDisplay();
-                renderTables();
-                renderHistory();
-                renderRecentBills();
+                saveTablesToStorage(); saveHistoryToStorage(); updateRevenueDisplay(); renderTables();
                 
                 document.getElementById("order-title").textContent = "Vui lòng chọn bàn...";
                 document.getElementById("order-controls").style.display = "none";
@@ -685,52 +610,140 @@
             }
         }
 
-        // HÀM SỬA SAI: Hủy hóa đơn đã thanh toán nhầm, trả ngược món về bàn
         function undoCheckout(billId) {
-            const billIndex = recentBills.findIndex(b => b.id === billId);
-            if (billIndex === -1) return;
-            
+            const billIndex = recentBills.findIndex(b => b.id === billId); if (billIndex === -1) return;
             const bill = recentBills[billIndex];
-            
-            if (confirm(`Bạn muốn HỦY hóa đơn nhầm lẫn này của BÀN ${bill.tableId}?\n\n- Doanh thu sẽ tự động trừ đi: ${bill.total.toLocaleString('vi-VN')}đ\n- Toàn bộ món ăn sẽ được trả ngược lại vào sơ đồ Bàn ${bill.tableId}.`)) {
-                
-                // 1. Trừ tiền khỏi doanh thu của ngày xuất hóa đơn đó
-                if (revenueHistory[bill.date]) {
-                    revenueHistory[bill.date] -= bill.total;
-                    if (revenueHistory[bill.date] < 0) revenueHistory[bill.date] = 0;
-                }
-
-                // 2. Trả ngược món ăn về bàn (Cộng dồn nếu bàn hiện đang có khách mới)
+            if (confirm(`HỦY hóa đơn nhầm lẫn này của BÀN ${bill.tableId}?`)) {
+                if (revenueHistory[bill.date]) { revenueHistory[bill.date] -= bill.total; if (revenueHistory[bill.date] < 0) revenueHistory[bill.date] = 0; }
                 bill.orderList.forEach(oldItem => {
-                    const existingItem = tables[bill.tableId].orderList.find(i => i.id === oldItem.id && (i.isTakeAway || false) === (oldItem.isTakeAway || false));
-                    if (existingItem) {
-                        existingItem.qty += oldItem.qty; // Nếu trùng món trùng trạng thái mang đi thì cộng dồn số lượng
-                    } else {
-                        tables[bill.tableId].orderList.push(oldItem); // Nếu chưa có thì thêm mới dòng món
-                    }
+                    const existing = tables[bill.tableId].orderList.find(i => i.id === oldItem.id && (i.isTakeAway || false) === (oldItem.isTakeAway || false));
+                    if (existing) existing.qty += oldItem.qty; else tables[bill.tableId].orderList.push(oldItem);
                 });
-
-                // 3. Xóa hóa đơn này ra khỏi danh sách lịch sử sửa sai
                 recentBills.splice(billIndex, 1);
+                localStorage.setItem('tino_recent_bills_v5', JSON.stringify(recentBills));
+                saveTablesToStorage(); saveHistoryToStorage(); updateRevenueDisplay(); renderTables(); renderRecentBills();
+                if (currentTableId === bill.tableId) renderOrderList();
+                alert(`Đã hoàn tác! Món ăn đã trả lại về Bàn ${bill.tableId}.`);
+            }
+        }
 
-                // 4. Đồng bộ lưu lại vào LocalStorage
-                localStorage.setItem('tino_recent_bills_v4', JSON.stringify(recentBills));
-                saveTablesToStorage();
-                saveHistoryToStorage();
+        // HÀM NÉN DỮ LIỆU SIÊU CẤP ĐỂ ĐƯA VÀO QR CODE (Bỏ qua bàn trống để chuỗi cực ngắn)
+        function compressData() {
+            let activeTables = {};
+            for (let i = 1; i <= 25; i++) {
+                if (tables[i] && tables[i].orderList && tables[i].orderList.length > 0) {
+                    activeTables[i] = tables[i].orderList.map(item => {
+                        return [itemIdsList.indexOf(item.id), item.qty, item.isTakeAway ? 1 : 0];
+                    });
+                }
+            }
+            let packedObj = {
+                t: activeTables,
+                r: revenueHistory || {},
+                b: recentBills.map(b => [
+                    b.tableId, b.total, b.time, b.date, 
+                    b.orderList.map(item => [itemIdsList.indexOf(item.id), item.qty, item.isTakeAway ? 1 : 0])
+                ])
+            };
+            return btoa(unescape(encodeURIComponent(JSON.stringify(packedObj))));
+        }
 
-                // 5. Cập nhật lại toàn bộ giao diện app
-                updateRevenueDisplay();
-                renderTables();
-                renderHistory();
-                renderRecentBills();
-
-                // Nếu bạn đang mở đúng cái bàn vừa được hoàn tác, lập tức hiển thị lại món ăn lên khung hóa đơn
-                if (currentTableId === bill.tableId) {
-                    renderOrderList();
+        // HÀM GIẢI NÉN DỮ LIỆU QR SANG DANH SÁCH MÓN ĐẦY ĐỦ
+        function decompressData(base64Str) {
+            try {
+                let jsonStr = decodeURIComponent(escape(atob(base64Str)));
+                let packed = JSON.parse(jsonStr);
+                let restoredTables = {};
+                for (let i = 1; i <= 25; i++) restoredTables[i] = { orderList: [] };
+                
+                if (packed.t) {
+                    for (let tableId in packed.t) {
+                        restoredTables[tableId].orderList = packed.t[tableId].map(arr => {
+                            let itemId = itemIdsList[arr[0]];
+                            let name = ""; let price = 0;
+                            for (let cat of menuData) {
+                                let match = cat.items.find(it => it.id === itemId);
+                                if (match) { name = match.name; price = match.price; break; }
+                            }
+                            return { id: itemId, name: name, price: price, qty: arr[1], isTakeAway: arr[2] === 1 };
+                        });
+                    }
                 }
 
-                alert(`Đã hủy hóa đơn nhầm thành công!\nToàn bộ món ăn đã được trả về Bàn ${bill.tableId}.`);
+                let restoredBills = [];
+                if (packed.b) {
+                    restoredBills = packed.b.map(arr => {
+                        let unpackedOrders = arr[4].map(oArr => {
+                            let itemId = itemIdsList[oArr[0]];
+                            let name = ""; let price = 0;
+                            for (let cat of menuData) {
+                                let match = cat.items.find(it => it.id === itemId);
+                                if (match) { name = match.name; price = match.price; break; }
+                            }
+                            return { id: itemId, name: name, price: price, qty: oArr[1], isTakeAway: oArr[2] === 1 };
+                        });
+                        return { id: Date.now() + Math.random(), tableId: arr[0], total: arr[1], time: arr[2], date: arr[3], orderList: unpackedOrders };
+                    });
+                }
+                return { tables: restoredTables, revenueHistory: packed.r || {}, recentBills: restoredBills };
+            } catch (e) { return null; }
+        }
+
+        // CHỨC NĂNG CHÍNH: TẠO MÃ QR ĐỒNG BỘ OFFLINE
+        function generateSyncQR() {
+            try {
+                let compressedString = compressData();
+                // Khởi tạo link đồng bộ chứa chuỗi dữ liệu nén sau dấu băm #
+                let currentUrl = window.location.origin + window.location.pathname;
+                let syncUrl = currentUrl + "#sync=" + compressedString;
+
+                document.getElementById("qr-display-area").style.display = "block";
+                const qrContainer = document.getElementById("qrcode-target");
+                qrContainer.innerHTML = ""; // Xóa mã cũ
+
+                // Gọi thư viện tạo QR cục bộ (chạy offline 100%)
+                new QRCode(qrContainer, {
+                    text: syncUrl,
+                    width: 256,
+                    height: 256,
+                    colorDark : "#3D2314",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.L // Cấp độ L cho phép chứa chuỗi văn bản dài
+                });
+                
+                // Cuộn xuống vùng hiển thị mã QR
+                qrContainer.scrollIntoView({ behavior: 'smooth' });
+            } catch (err) {
+                alert("Không thể sinh mã QR! Hãy chắc chắn rằng bạn đã push bản code mới nhất lên Vercel.");
             }
+        }
+
+        function exportDataToJSON() {
+            const dataToBackup = { tables: tables, revenueHistory: revenueHistory, recentBills: recentBills };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataToBackup));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `TINO_COFFEE_Backup_${todayStr.replace(/\//g, '-')}.json`);
+            document.body.appendChild(downloadAnchor); downloadAnchor.click(); downloadAnchor.remove();
+        }
+
+        function importDataFromJSON(event) {
+            const file = event.target.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parsedData = JSON.parse(e.target.result);
+                    if (parsedData.tables && parsedData.revenueHistory && parsedData.recentBills) {
+                        if (confirm("Xác nhận ghi đè khôi phục hệ thống từ file?")) {
+                            localStorage.setItem('tino_tables_v5', JSON.stringify(parsedData.tables));
+                            localStorage.setItem('tino_revenue_history_v5', JSON.stringify(parsedData.revenueHistory));
+                            localStorage.setItem('tino_recent_bills_v5', JSON.stringify(parsedData.recentBills));
+                            alert("Khôi phục thành công!"); location.reload();
+                        }
+                    } else { alert("File chọn không đúng định dạng!"); }
+                } catch (err) { alert("Lỗi khi đọc file!"); }
+            };
+            reader.readAsText(file);
         }
     </script>
 </body>
