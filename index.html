@@ -120,4 +120,490 @@
 
         .takeaway-option input {
             width: 22px;
-            height: 22
+            height: 22px;
+            cursor: pointer;
+        }
+
+        .takeaway-option label {
+            font-weight: bold;
+            color: var(--dark-color);
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+
+        select, button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 5px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 1rem;
+        }
+
+        button {
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-add {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            margin-top: 5px;
+        }
+
+        /* Danh sách món ăn trong bàn */
+        .order-list {
+            flex-grow: 1;
+            margin-top: 15px;
+            max-height: 350px;
+            overflow-y: auto;
+            border-bottom: 2px dashed #ddd;
+            padding-bottom: 10px;
+        }
+
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .badge-takeaway {
+            background-color: var(--danger-color);
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 5px;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .item-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-qty {
+            width: 28px;
+            height: 28px;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #e0e0e0;
+            border: none;
+            border-radius: 4px;
+        }
+
+        .checkout-box {
+            margin-top: 15px;
+        }
+
+        .total-price {
+            font-size: 1.3rem;
+            font-weight: bold;
+            text-align: right;
+            margin-bottom: 10px;
+            color: var(--dark-color);
+        }
+
+        .btn-pay {
+            background-color: var(--success-color);
+            color: white;
+            border: none;
+            font-size: 1.1rem;
+        }
+
+        /* Khu vực hiển thị lịch sử 30 ngày */
+        .history-section {
+            margin-top: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .history-list {
+            margin-top: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .history-item:nth-child(even) {
+            background-color: #fcfbfa;
+        }
+
+        /* Responsive cho điện thoại */
+        @media (max-width: 768px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+            .tables-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>TINO COFFEE</h1>
+        <div class="revenue-box">Doanh thu hôm nay (<span id="today-date">--/--/----</span>): <span id="daily-revenue">0</span>đ</div>
+    </header>
+
+    <div class="main-layout">
+        <div class="tables-section">
+            <h3>Sơ đồ bàn (25 bàn)</h3>
+            <div class="tables-grid" id="tables-container">
+                </div>
+        </div>
+
+        <div class="order-section">
+            <h3 id="order-title">Vui lòng chọn bàn...</h3>
+            
+            <div id="order-controls" style="display: none;">
+                <div class="menu-selector">
+                    <label for="menu-select">Chọn món ăn/nước uống:</label>
+                    <select id="menu-select">
+                        </select>
+                    
+                    <div class="takeaway-option" onclick="toggleCheckbox(event)">
+                        <input type="checkbox" id="takeaway-checkbox">
+                        <label for="takeaway-checkbox">🥡 Mua mang đi (Take-away)</label>
+                    </div>
+
+                    <button class="btn-add" onclick="addItemToTable()">Thêm món vào bàn</button>
+                </div>
+
+                <h4>Món đã gọi:</h4>
+                <div class="order-list" id="current-order-list">
+                    </div>
+
+                <div class="checkout-box">
+                    <div class="total-price">Tổng cộng: <span id="table-total">0</span>đ</div>
+                    <button class="btn-pay" onclick="checkoutTable()">Thanh Toán & Trả Bàn</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="history-section">
+        <h3>Lịch sử doanh thu (Tối đa 30 ngày gần nhất)</h3>
+        <div class="history-list" id="history-container">
+            </div>
+    </div>
+
+    <script>
+        // Toàn bộ dữ liệu Menu từ ảnh gốc của bạn và đã bổ sung Bò Húc
+        const menuData = [
+            { category: "CÀ PHÊ", items: [
+                { id: "cf_den_phin", name: "Cafe Đen (Phin)", price: 15000 },
+                { id: "cf_sua_phin", name: "Cafe Sữa (Phin)", price: 17000 },
+                { id: "cf_den_may", name: "Cafe Đen Máy", price: 17000 },
+                { id: "cf_sua_may", name: "Cafe Sữa Máy", price: 20000 },
+                { id: "cf_den_sg", name: "Cafe Đen Sài Gòn", price: 22000 },
+                { id: "cf_sua_sg", name: "Cafe Sữa Sài Gòn", price: 25000 },
+                { id: "bac_xiu", name: "Bạc Xỉu", price: 25000 },
+                { id: "bac_xiu_muoi", name: "Bạc Xỉu Muối", price: 30000 },
+                { id: "cf_muoi", name: "Cà Phê Muối", price: 27000 }
+            ]},
+            { category: "NON-CAFE", items: [
+                { id: "cacao_da_nong", name: "Cacao Đá/Nóng", price: 27000 },
+                { id: "tra_gung", name: "Trà Gừng", price: 25000 },
+                { id: "cacao_muoi", name: "Cacao Muối", price: 32000 }
+            ]},
+            { category: "SỮA CHUA", items: [
+                { id: "sua_chua_da", name: "Sữa Chua Đá", price: 22000 },
+                { id: "sua_chua_dau", name: "Sữa Chua Dâu", price: 27000 },
+                { id: "sua_chua_viet_quat", name: "Sữa Chua Việt Quất", price: 27000 },
+                { id: "sua_chua_dao", name: "Sữa Chua Đào", price: 27000 }
+            ]},
+            { category: "NƯỚC GIẢI KHÁT", items: [
+                { id: "khoang", name: "Khoáng", price: 15000 },
+                { id: "khoang_sua", name: "Khoáng Sữa", price: 17000 },
+                { id: "sting_vang", name: "Sting Vàng", price: 16000 },
+                { id: "sting_dau", name: "Sting Dâu", price: 17000 },
+                { id: "bo_huc", name: "Bò Húc", price: 22000 } // <-- Món mới của bạn ở đây
+            ]},
+            { category: "TRÀ TRÁI CÂY", items: [
+                { id: "tra_chanh_dau", name: "Trà Chanh Dâu", price: 25000 },
+                { id: "tra_dao_tt", name: "Trà Đào Truyền Thống", price: 27000 },
+                { id: "tra_chanh_vq", name: "Trà Chanh Việt Quất", price: 25000 },
+                { id: "tra_chanh_tt", name: "Trà Chanh Truyền Thống", price: 22000 }
+            ]},
+            { category: "NƯỚC TRÁI CÂY", items: [
+                { id: "nuoc_ep_cam", name: "Nước Ép Cam", price: 25000 },
+                { id: "nuoc_ep_ca_rot", name: "Nước Ép Cà Rốt", price: 25000 },
+                { id: "nuoc_ep_thom", name: "Nước Ép Thơm", price: 25000 },
+                { id: "sinh_to_bo", name: "Sinh Tố Bơ", price: 30000 },
+                { id: "chanh_tuoi_xi_muoi", name: "Nước Chanh Tươi Xí Muội", price: 22000 }
+            ]},
+            { category: "ĐÁ XAY", items: [
+                { id: "cacao_da_xay", name: "Cacao Đá Xay", price: 32000 },
+                { id: "da_xay_vq", name: "Đá Xay Việt Quất", price: 32000 },
+                { id: "da_xay_dau", name: "Đá Xay Dâu", price: 32000 }
+            ]}
+        ];
+
+        let currentTableId = null;
+        let tables = JSON.parse(localStorage.getItem('tino_tables_v3')) || {};
+        let revenueHistory = JSON.parse(localStorage.getItem('tino_revenue_history_v3')) || {};
+
+        function getTodayString() {
+            const d = new Date();
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const year = d.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+
+        const todayStr = getTodayString();
+
+        if (Object.keys(tables).length === 0) {
+            for (let i = 1; i <= 25; i++) {
+                tables[i] = { orderList: [] };
+            }
+            localStorage.setItem('tino_tables_v3', JSON.stringify(tables));
+        }
+
+        if (!revenueHistory[todayStr]) {
+            revenueHistory[todayStr] = 0;
+            saveHistoryToStorage();
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            document.getElementById("today-date").textContent = todayStr;
+            renderTables();
+            initMenuSelect();
+            updateRevenueDisplay();
+            renderHistory();
+        });
+
+        function saveTablesToStorage() {
+            localStorage.setItem('tino_tables_v3', JSON.stringify(tables));
+        }
+
+        function saveHistoryToStorage() {
+            const sortedDates = Object.keys(revenueHistory).sort((a, b) => {
+                const partsA = a.split('/');
+                const partsB = b.split('/');
+                return new Date(partsB[2], partsB[1] - 1, partsB[0]) - new Date(partsA[2], partsA[1] - 1, partsA[0]);
+            });
+
+            while (sortedDates.length > 30) {
+                const oldestDate = sortedDates.pop();
+                delete revenueHistory[oldestDate];
+            }
+
+            localStorage.setItem('tino_revenue_history_v3', JSON.stringify(revenueHistory));
+        }
+
+        function renderTables() {
+            const container = document.getElementById("tables-container");
+            container.innerHTML = "";
+            for (let i = 1; i <= 25; i++) {
+                const btn = document.createElement("button");
+                btn.className = "table-btn";
+                btn.id = `table-${i}`;
+                
+                if (tables[i].orderList.length > 0) {
+                    btn.classList.add("active-table");
+                    btn.innerHTML = `<div>Bàn ${i}</div><small style="font-size:0.7rem;">Có khách</small>`;
+                } else {
+                    btn.innerHTML = `<div>Bàn ${i}</div><small style="color:#aaa; font-size:0.7rem;">Trống</small>`;
+                }
+
+                if (currentTableId == i) {
+                    btn.classList.add("selected-now");
+                }
+
+                btn.onclick = () => selectTable(i);
+                container.appendChild(btn);
+            }
+        }
+
+        function initMenuSelect() {
+            const select = document.getElementById("menu-select");
+            select.innerHTML = ""; // Xóa dữ liệu cũ để load lại mới chuẩn xác
+            menuData.forEach(cat => {
+                const group = document.createElement("optgroup");
+                group.label = cat.category;
+                cat.items.forEach(item => {
+                    const opt = document.createElement("option");
+                    opt.value = JSON.stringify(item);
+                    opt.textContent = `${item.name} - ${(item.price/1000)}k`;
+                    group.appendChild(opt);
+                });
+                select.appendChild(group);
+            });
+        }
+
+        function updateRevenueDisplay() {
+            const currentTodayRevenue = revenueHistory[todayStr] || 0;
+            document.getElementById("daily-revenue").textContent = currentTodayRevenue.toLocaleString('vi-VN');
+        }
+
+        function renderHistory() {
+            const container = document.getElementById("history-container");
+            container.innerHTML = "";
+
+            const sortedDates = Object.keys(revenueHistory).sort((a, b) => {
+                const partsA = a.split('/');
+                const partsB = b.split('/');
+                return new Date(partsB[2], partsB[1] - 1, partsB[0]) - new Date(partsA[2], partsA[1] - 1, partsA[0]);
+            });
+
+            if (sortedDates.length === 0) {
+                container.innerHTML = `<div style="color:#aaa; padding: 10px; text-align:center;">Chưa có dữ liệu lịch sử</div>`;
+                return;
+            }
+
+            sortedDates.forEach(date => {
+                const div = document.createElement("div");
+                div.className = "history-item";
+                div.innerHTML = `
+                    <span>📅 Ngày <strong>${date}</strong> ${date === todayStr ? '<small style="color:var(--active-color)">(Hôm nay)</small>' : ''}</span>
+                    <span style="font-weight:bold; color:var(--primary-color);">${revenueHistory[date].toLocaleString('vi-VN')}đ</span>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function selectTable(tableId) {
+            currentTableId = tableId;
+            document.querySelectorAll('.table-btn').forEach(b => b.classList.remove('selected-now'));
+            document.getElementById(`table-${tableId}`).classList.add('selected-now');
+
+            document.getElementById("order-title").textContent = `Đang chọn: BÀN ${tableId}`;
+            document.getElementById("order-controls").style.display = "block";
+
+            renderOrderList();
+        }
+
+        function renderOrderList() {
+            const listContainer = document.getElementById("current-order-list");
+            listContainer.innerHTML = "";
+            
+            if (!currentTableId) return;
+
+            const currentOrder = tables[currentTableId].orderList;
+            let total = 0;
+
+            currentOrder.forEach((item, index) => {
+                const itemTotal = item.price * item.qty;
+                total += itemTotal;
+
+                const div = document.createElement("div");
+                div.className = "order-item";
+                div.innerHTML = `
+                    <div>
+                        <strong>${item.name}${item.isTakeAway ? '<span class="badge-takeaway">Mang đi</span>' : ''}</strong><br>
+                        <small style="color:#666">${item.price.toLocaleString('vi-VN')}đ</small>
+                    </div>
+                    <div class="item-controls">
+                        <button class="btn-qty" onclick="changeQty(${index}, -1)">-</button>
+                        <span>${item.qty}</span>
+                        <button class="btn-qty" onclick="changeQty(${index}, 1)">+</button>
+                        <span style="font-weight:bold; margin-left:10px;">${itemTotal.toLocaleString('vi-VN')}đ</span>
+                    </div>
+                `;
+                listContainer.appendChild(div);
+            });
+
+            document.getElementById("table-total").textContent = total.toLocaleString('vi-VN');
+        }
+
+        function toggleCheckbox(e) {
+            if (e.target.tagName !== 'INPUT') {
+                const cb = document.getElementById("takeaway-checkbox");
+                cb.checked = !cb.checked;
+            }
+        }
+
+        function addItemToTable() {
+            if (!currentTableId) return;
+
+            const select = document.getElementById("menu-select");
+            const itemInfo = JSON.parse(select.value);
+            const isTakeAway = document.getElementById("takeaway-checkbox").checked;
+            
+            const currentOrder = tables[currentTableId].orderList;
+            const existingItem = currentOrder.find(i => i.id === itemInfo.id && (i.isTakeAway || false) === isTakeAway);
+
+            if (existingItem) {
+                existingItem.qty += 1;
+            } else {
+                currentOrder.push({
+                    id: itemInfo.id,
+                    name: itemInfo.name,
+                    price: itemInfo.price,
+                    qty: 1,
+                    isTakeAway: isTakeAway
+                });
+            }
+
+            document.getElementById("takeaway-checkbox").checked = false;
+
+            saveTablesToStorage();
+            renderTables();
+            renderOrderList();
+        }
+
+        function changeQty(index, change) {
+            const currentOrder = tables[currentTableId].orderList;
+            currentOrder[index].qty += change;
+
+            if (currentOrder[index].qty <= 0) {
+                currentOrder.splice(index, 1);
+            }
+
+            saveTablesToStorage();
+            renderTables();
+            renderOrderList();
+        }
+
+        function checkoutTable() {
+            if (!currentTableId) return;
+
+            const currentOrder = tables[currentTableId].orderList;
+            if (currentOrder.length === 0) {
+                alert("Bàn này chưa gọi món nào để thanh toán!");
+                return;
+            }
+
+            let total = currentOrder.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            
+            if (confirm(`Xác nhận thanh toán Bàn ${currentTableId}\nTổng tiền: ${total.toLocaleString('vi-VN')}đ?\nBàn sẽ tự động reset sau khi hoàn tất.`)) {
+                
+                const activeTodayStr = getTodayString();
+                revenueHistory[activeTodayStr] = (revenueHistory[activeTodayStr] || 0) + total;
+                
+                tables[currentTableId].orderList = [];
+                
+                saveTablesToStorage();
+                saveHistoryToStorage();
+                
+                updateRevenueDisplay();
+                renderTables();
+                renderHistory();
+                
+                document.getElementById("order-title").textContent = "Vui lòng chọn bàn...";
+                document.getElementById("order-controls").style.display = "none";
+                currentTableId = null;
+            }
+        }
+    </script>
+</body>
+</html>
