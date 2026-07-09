@@ -170,7 +170,7 @@
             border: 1px solid #ccc;
             font-size: 1rem;
             font-weight: bold;
-            background-color: #fff; /* Đảm bảo nền trắng rõ ràng */
+            background-color: #fff;
         }
 
         .btn-add { background-color: var(--primary-color); color: white; border: none; cursor: pointer; }
@@ -330,7 +330,7 @@
     <div id="tab-pos" class="tab-content active-tab-view">
         <div class="main-layout">
             <div class="tables-section">
-                <h3>Sơ đồ phục vụ (27 Bàn + Ô Mang đi)</h3>
+                <h3>Sơ đồ phục vụ (28 Bàn + Ô Mang đi)</h3>
                 <div class="tables-grid" id="tables-container"></div>
             </div>
 
@@ -340,6 +340,27 @@
                     <div class="menu-selector">
                         <label for="menu-select">Chọn món ăn/nước uống:</label>
                         <select id="menu-select"></select>
+                        
+                        <!-- BỘ CHỌN NOTE ĐÁ / ĐƯỜNG CHO PHA CHẾ (MỚI THÊM) -->
+                        <div class="fee-selector-grid" style="margin-top: 10px; margin-bottom: 2px;">
+                            <div>
+                                <label style="font-size:0.85rem; font-weight:bold; color:#00b4d8;">❄️ Ghi chú Đá</label>
+                                <select id="item-ice-select">
+                                    <option value="">Đá bình thường</option>
+                                    <option value="Ít đá">Ít đá</option>
+                                    <option value="Không đá">Không đá</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="font-size:0.85rem; font-weight:bold; color:#ffb703;">🍯 Ghi chú Ngọt</label>
+                                <select id="item-sweet-select">
+                                    <option value="">Ngọt bình thường</option>
+                                    <option value="Ít ngọt">Ít ngọt</option>
+                                    <option value="Không đường">Không đường</option>
+                                </select>
+                            </div>
+                        </div>
+
                         <button class="btn-action btn-add" style="margin-top:10px;" onclick="addItemToTable()">Thêm món vào danh sách</button>
                     </div>
                     <h4 style="margin-top: 15px;">Món đã gọi:</h4>
@@ -461,7 +482,6 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // DANH MỤC THỰC ĐƠN ĐẦY ĐỦ GIÁ MỚI THEO ẢNH MENU
         const menuData = [
             { category: "CÀ PHÊ", items: [
                 { id: "cf_den_phin", name: "Cafe Đen (Phin)", price: 13000 }, 
@@ -530,7 +550,6 @@
         }
         const todayStr = getTodayString();
 
-        // SỬA ĐỔI CHI TIẾT: Khởi tạo nạp dữ liệu món ăn ngay lập tức không thông qua DomContentLoaded nữa để sửa lỗi "Không có tùy chọn"
         function initMenuSelect() {
             const select = document.getElementById("menu-select"); 
             if(!select) return;
@@ -546,7 +565,6 @@
             });
         }
         
-        // Chạy lập tức lệnh điền ngày tháng và menu món ăn chống trượt tiến trình di động
         document.getElementById("today-date").textContent = todayStr.replace(/-/g, '/');
         initMenuSelect();
 
@@ -555,7 +573,8 @@
             
             let cloudTables = data.tables || {};
             tables = {};
-            for (let i = 1; i <= 27; i++) {
+            // NÂNG CẤP: Chuyển dữ liệu vòng lặp tăng lên 28 bàn
+            for (let i = 1; i <= 28; i++) {
                 tables[i] = { orderList: [] };
                 if (cloudTables[i] && cloudTables[i].orderList) {
                     tables[i].orderList = Array.isArray(cloudTables[i].orderList) ? cloudTables[i].orderList : Object.values(cloudTables[i].orderList);
@@ -642,17 +661,19 @@
             }
         }
 
+        // PHẦN HIỂN THỊ SƠ ĐỒ PHỤC VỤ (28 BÀN + MANG ĐI)
         function renderTables() {
             const container = document.getElementById("tables-container"); container.innerHTML = "";
             
-            for (let i = 1; i <= 27; i++) {
+            // Vẽ 28 bàn (Có gắn nhãn Tầng 2 chuyên biệt cho Bàn 28)
+            for (let i = 1; i <= 28; i++) {
                 const btn = document.createElement("button");
                 btn.className = "table-btn"; btn.id = `table-${i}`;
                 if (tables[i] && tables[i].orderList && tables[i].orderList.length > 0) {
                     btn.classList.add("active-table");
-                    btn.innerHTML = `<div>Bàn ${i}</div><small style="font-size:0.7rem;">Có khách</small>`;
+                    btn.innerHTML = `<div>Bàn ${i}</div><small style="font-size:0.7rem;">${i===28?'Có khách T2':'Có khách'}</small>`;
                 } else {
-                    btn.innerHTML = `<div>Bàn ${i}</div><small style="color:#aaa; font-size:0.7rem;">Trống</small>`;
+                    btn.innerHTML = `<div>Bàn ${i}</div><small style="color:#aaa; font-size:0.7rem;">${i===28?'Tầng 2':'Trống'}</small>`;
                 }
                 if (currentTableId == i) btn.classList.add("selected-now");
                 btn.onclick = () => selectTable(i);
@@ -682,15 +703,17 @@
             
             todayBills.forEach(bill => {
                 const div = document.createElement("div"); div.className = "bill-item";
-                let itemsDetailHTML = bill.orderList.map(i => `• ${i.name}${i.isTakeAway?' (Mang đi)':''} x${i.qty}`).join('<br>');
+                let itemsDetailHTML = bill.orderList.map(i => `• ${i.name}${i.note ? ` [${i.note}]`:''} x${i.qty}`).join('<br>');
                 let methodText = bill.paymentMethod === "chuyen_khoan" ? "💳 Chuyển khoản" : "💵 Tiền mặt";
                 let feeInfo = `Tạm tính: ${bill.subtotal.toLocaleString()}đ`;
                 if(bill.discount > 0) feeInfo += ` | Giảm ${bill.discount}%`;
                 if(bill.surcharge > 0) feeInfo += ` | Phụ thu ${bill.surcharge}%`;
 
+                let displayLabelTable = bill.tableId === 'takeaway' ? 'Mang Đi' : (bill.tableId === 28 ? 'Bàn 28 (Tầng 2)' : `Bàn ${bill.tableId}`);
+
                 div.innerHTML = `
                     <div class="bill-header">
-                        <span><strong>Bàn ${bill.tableId === 'takeaway'?'Mang Đi':bill.tableId}</strong> <small style="color:#666;">(${bill.time})</small></span>
+                        <span><strong>${displayLabelTable}</strong> <small style="color:#666;">(${bill.time})</small></span>
                         <span style="font-size:0.75rem; font-weight:bold;">${methodText}</span>
                         <button class="btn-undo" onclick="undoCheckout('${bill.id}')">Hủy</button>
                     </div>
@@ -760,7 +783,10 @@
                     bill.orderList.forEach(item => {
                         totalItemsCount += item.qty;
                         if (item.isTakeAway) totalTakeawayCount += item.qty;
-                        itemDemandDict[item.name] = (itemDemandDict[item.name] || 0) + item.qty;
+                        
+                        // SỬA ĐỔI QUAN TRỌNG: CHỈ gom nhóm theo item.name gốc, lọc bỏ hoàn toàn chuỗi note đá/đường để lịch sử sạch sẽ
+                        let key = item.name; 
+                        itemDemandDict[key] = (itemDemandDict[key] || 0) + item.qty;
                     });
                 }
             });
@@ -801,15 +827,17 @@
             } else {
                 filteredBills.forEach(bill => {
                     const div = document.createElement("div"); div.className = "bill-item";
-                    let itemsDetailHTML = bill.orderList.map(i => `• ${i.name}${i.isTakeAway?' (Mang đi)':''} x${i.qty}`).join('<br>');
+                    let itemsDetailHTML = bill.orderList.map(i => `• ${i.name}${i.note ? ` [${i.note}]`:''} x${i.qty}`).join('<br>');
                     let methodLabel = bill.paymentMethod === "chuyen_khoan" ? "[CK]" : "[TM]";
                     let breakdownStr = `Tạm tính: ${bill.subtotal.toLocaleString()}đ`;
                     if(bill.discount > 0) breakdownStr += ` - Giảm ${bill.discount}%`;
                     if(bill.surcharge > 0) breakdownStr += ` + Phụ thu ${bill.surcharge}%`;
 
+                    let displayLabelTable = bill.tableId === 'takeaway' ? 'Mang Đi' : (bill.tableId === 28 ? 'Bàn 28 (Tầng 2)' : `Bàn ${bill.tableId}`);
+
                     div.innerHTML = `
                         <div class="bill-header">
-                            <span>Bàn ${bill.tableId === 'takeaway'?'Mang Đi':bill.tableId} <small style="color:#666; font-weight:normal;">(${bill.date.replace(/-/g, '/')} ${bill.time}) ${methodLabel}</small></span>
+                            <span><strong>${displayLabelTable}</strong> <small style="color:#666; font-weight:normal;">(${bill.date.replace(/-/g, '/')} ${bill.time}) ${methodLabel}</small></span>
                         </div>
                         <div class="bill-details">
                             ${itemsDetailHTML}
@@ -870,6 +898,9 @@
             if (tableId === 'takeaway') {
                 document.getElementById('table-takeaway').classList.add('selected-now');
                 document.getElementById("order-title").textContent = `Đang chọn: 🥡 ĐƠN MANG ĐI`;
+            } else if (tableId === 28) {
+                if (document.getElementById(`table-28`)) document.getElementById(`table-28`).classList.add('selected-now');
+                document.getElementById("order-title").textContent = `Đang chọn: BÀN 28 (TẦNG 2)`;
             } else {
                 if (document.getElementById(`table-${tableId}`)) document.getElementById(`table-${tableId}`).classList.add('selected-now');
                 document.getElementById("order-title").textContent = `Đang chọn: BÀN ${tableId}`;
@@ -878,6 +909,10 @@
             document.getElementById("order-controls").style.display = "block";
             document.getElementById("order-discount-select").value = "0";
             document.getElementById("order-surcharge-select").value = "0";
+            
+            // Đưa ghi chú ly nước về mặc định trống
+            document.getElementById("item-ice-select").value = "";
+            document.getElementById("item-sweet-select").value = "";
             
             renderOrderList();
 
@@ -896,7 +931,11 @@
             currentOrder.forEach((item, index) => {
                 const itemTotal = item.price * item.qty; subtotal += itemTotal;
                 const div = document.createElement("div"); div.className = "order-item";
-                div.innerHTML = `<div><strong>${item.name}${item.isTakeAway ? '<span class="badge-takeaway">Mang đi</span>' : ''}</strong><br><small style="color:#666">${item.price.toLocaleString('vi-VN')}đ</small></div>
+                
+                // Hiển thị nhãn ghi chú pha chế nhỏ gọn màu xanh dương dưới tên món
+                let noteHTML = item.note ? `<br><small style="color:#0077b6; font-weight:bold;">📝 ${item.note}</small>` : '';
+                
+                div.innerHTML = `<div><strong>${item.name}${item.isTakeAway ? '<span class="badge-takeaway">Mang đi</span>' : ''}</strong>${noteHTML}<br><small style="color:#666">${item.price.toLocaleString('vi-VN')}đ</small></div>
                     <div class="item-controls">
                         <button class="btn-qty" onclick="changeQty(${index}, -1)">-</button><span>${item.qty}</span><button class="btn-qty" onclick="changeQty(${index}, 1)">+</button>
                         <span style="font-weight:bold; margin-left:10px;">${itemTotal.toLocaleString('vi-VN')}đ</span>
@@ -923,16 +962,42 @@
 
         function toggleBankCheckbox(e) { if (e.target.tagName !== 'INPUT') { const cb = document.getElementById("payment-method-checkbox"); cb.checked = !cb.checked; } }
 
+        // HÀM GỌI MÓN: Thu thập dữ liệu đá ngọt và đóng gói vào mảng cục bộ bàn ghế
         function addItemToTable() {
             if (!currentTableId) return;
             const select = document.getElementById("menu-select"); const itemInfo = JSON.parse(select.value);
             const isTakeAway = (currentTableId === 'takeaway') ? true : false;
             
+            // Xử lý nén chuỗi ghi chú pha chế
+            const iceOpt = document.getElementById("item-ice-select").value;
+            const sweetOpt = document.getElementById("item-sweet-select").value;
+            let noteParts = [];
+            if (iceOpt) noteParts.push(iceOpt);
+            if (sweetOpt) noteParts.push(sweetOpt);
+            let itemNote = noteParts.join(", "); // Ví dụ: "Ít đá, Ít ngọt"
+
             if (!tables[currentTableId].orderList) tables[currentTableId].orderList = [];
             const currentOrder = tables[currentTableId].orderList;
-            const existingItem = currentOrder.find(i => i.id === itemInfo.id && (i.isTakeAway || false) === isTakeAway);
             
-            if (existingItem) { existingItem.qty += 1; } else { currentOrder.push({ id: itemInfo.id, name: itemInfo.name, price: itemInfo.price, qty: 1, isTakeAway: isTakeAway }); }
+            // Tìm kiếm phần tử trùng cả Tên, Hình thức mang đi và Ghi chú để cộng dồn số lượng
+            const existingItem = currentOrder.find(i => i.id === itemInfo.id && (i.isTakeAway || false) === isTakeAway && (i.note || "") === itemNote);
+            
+            if (existingItem) { 
+                existingItem.qty += 1; 
+            } else { 
+                currentOrder.push({ 
+                    id: itemInfo.id, 
+                    name: itemInfo.name, 
+                    price: itemInfo.price, 
+                    qty: 1, 
+                    isTakeAway: isTakeAway,
+                    note: itemNote // Đóng gói lưu note riêng biệt
+                }); 
+            }
+            
+            // Trả hai ô chọn ghi chú đá/ngọt về mặc định ban đầu
+            document.getElementById("item-ice-select").value = "";
+            document.getElementById("item-sweet-select").value = "";
             
             renderOrderList();
             pushDataToCloud(); 
@@ -963,7 +1028,7 @@
             const finalMethod = isBankTransfer ? "chuyen_khoan" : "tien_mat";
             let confirmMsg = isBankTransfer ? "CHUYỂN KHOẢN" : "TIỀN MẶT";
 
-            let labelTable = (currentTableId === 'takeaway') ? "Đơn mang đi" : `Bàn ${currentTableId}`;
+            let labelTable = (currentTableId === 'takeaway') ? "Đơn mang đi" : (currentTableId === 28 ? "Bàn 28 (Tầng 2)" : `Bàn ${currentTableId}`);
 
             if (confirm(`Xác nhận thanh toán ${confirmMsg} cho ${labelTable}\nSố tiền cần thu: ${finalTotal.toLocaleString('vi-VN')}đ?`)) {
                 const activeTodayStr = getTodayString(); const now = new Date();
@@ -1000,13 +1065,13 @@
             const billIndex = recentBills.findIndex(b => b.id === billId); if (billIndex === -1) return;
             const bill = recentBills[billIndex];
             
-            let labelTable = (bill.tableId === 'takeaway') ? "Đơn mang đi" : `Bàn ${bill.tableId}`;
+            let labelTable = (bill.tableId === 'takeaway') ? "Đơn mang đi" : (bill.tableId === 28 ? "Bàn 28 (Tầng 2)" : `Bàn ${bill.tableId}`);
             if (confirm(`HỦY hóa đơn nhầm lẫn này của ${labelTable}?`)) {
                 if (revenueHistory[bill.date]) { revenueHistory[bill.date] -= bill.total; if (revenueHistory[bill.date] < 0) revenueHistory[bill.date] = 0; }
                 
                 if (!tables[bill.tableId].orderList) tables[bill.tableId].orderList = [];
                 bill.orderList.forEach(oldItem => {
-                    const existing = tables[bill.tableId].orderList.find(i => i.id === oldItem.id && (i.isTakeAway || false) === (oldItem.isTakeAway || false));
+                    const existing = tables[bill.tableId].orderList.find(i => i.id === oldItem.id && (i.isTakeAway || false) === (oldItem.isTakeAway || false) && (i.note || "") === (oldItem.note || ""));
                     if (existing) existing.qty += oldItem.qty; else tables[bill.tableId].orderList.push(oldItem);
                 });
                 recentBills.splice(billIndex, 1);
@@ -1054,15 +1119,17 @@
 
             let reportWindow = window.open('', '_blank');
             let billsHTML = filteredBills.map((bill) => {
-                let itemsText = bill.orderList.map(i => `  + ${i.name}${i.isTakeAway?'(MĐ)':''} x${i.qty}`).join('<br>');
+                let itemsText = bill.orderList.map(i => `  + ${i.name}${i.note ? ` [${i.note}]`:''} x${i.qty}`).join('<br>');
                 let mLabel = bill.paymentMethod === "chuyen_khoan" ? "Chuyển khoản" : "Tiền mặt";
                 let feeText = `Tạm tính: ${bill.subtotal.toLocaleString()}đ`;
                 if(bill.discount > 0) feeText += ` - Giảm ${bill.discount}%`;
                 if(bill.surcharge > 0) feeText += ` + Phụ thu ${bill.surcharge}%`;
 
+                let displayLabelTable = bill.tableId === 'takeaway' ? 'Mang Đi' : (bill.tableId === 28 ? 'Bàn 28 (Tầng 2)' : `Bàn ${bill.tableId}`);
+
                 return `
                     <div style="margin-bottom: 10px; border-bottom: 1px dashed #ccc; padding-bottom: 6px;">
-                        <strong>Bàn ${bill.tableId === 'takeaway'?'Mang Đi':bill.tableId} (${bill.time}) [${mLabel}]</strong><br>
+                        <strong>${displayLabelTable} (${bill.time}) [${mLabel}]</strong><br>
                         ${itemsText}<br>
                         <small style="color:#555; display:block;">${feeText}</small>
                         <div style="text-align: right;">Tổng thu đơn: <strong>${bill.total.toLocaleString('vi-VN')}đ</strong></div>
