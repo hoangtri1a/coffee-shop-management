@@ -302,7 +302,7 @@
 
         @media (min-width: 769px) {
             .main-layout { grid-template-columns: 1fr 1fr; }
-            .tables-grid { grid-template-columns: repeat(6, 1fr); } /* Màn rộng dàn hàng 6 bàn */
+            .tables-grid { grid-template-columns: repeat(6, 1fr); }
             .tab-bar { max-width: 500px; margin: 0 auto 15px auto; }
         }
     </style>
@@ -461,7 +461,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // THAY ĐỔI LỚN: CẬP NHẬT TOÀN BỘ DANH MỤC GIÁ MỚI THEO ẢNH MENU VÀ BỔ SUNG ĂN VẶT
+        // DANH MỤC THỰC ĐƠN ĐÃ CẬP NHẬT GIÁ MỚI VÀ ĂN VẶT
         const menuData = [
             { category: "CÀ PHÊ", items: [
                 { id: "cf_den_phin", name: "Cafe Đen (Phin)", price: 13000 }, 
@@ -535,7 +535,7 @@
             
             let cloudTables = data.tables || {};
             tables = {};
-            // NÂNG CẤP: Thay đổi vòng lặp cấu trúc lên đến 27 bàn phục vụ trực tuyến
+            // Khởi tạo và đồng bộ 27 bàn
             for (let i = 1; i <= 27; i++) {
                 tables[i] = { orderList: [] };
                 if (cloudTables[i] && cloudTables[i].orderList) {
@@ -593,6 +593,11 @@
             pushDataToCloud();
         }
 
+        document.addEventListener("DOMContentLoaded", () => {
+            document.getElementById("today-date").textContent = todayStr.replace(/-/g, '/');
+            initMenuSelect();
+        });
+
         function switchTab(tabName) {
             if (tabName === 'admin' && !isAdminAuthenticated) {
                 let pass = prompt("Vui lòng nhập mật khẩu Quản lý của Chủ quán để tiếp tục:");
@@ -623,11 +628,9 @@
             }
         }
 
-        // PHẦN HIỂN THỊ SƠ ĐỒ PHỤC VỤ (27 BÀN + MANG ĐI)
         function renderTables() {
             const container = document.getElementById("tables-container"); container.innerHTML = "";
             
-            // NÂNG CẤP: Tạo lập giao diện mở rộng đủ 27 ô nút bàn trên thiết bị
             for (let i = 1; i <= 27; i++) {
                 const btn = document.createElement("button");
                 btn.className = "table-btn"; btn.id = `table-${i}`;
@@ -651,7 +654,7 @@
                 tkBtn.classList.add("active-table");
                 tkBtn.innerHTML = `<div style="color:var(--dark-color)">🥡 MANG ĐI</div><small style="font-size:0.7rem;">Có đơn</small>`;
             } else {
-                tkBtn.innerHTML = `<div style="color:var(--primary-color)">🥡 MANG ĐI</div><small style="color:#aaa; font-size:0.7rem;">Trống</small>`;
+                tkBtn.innerHTML = `<div style="color(--primary-color)">🥡 MANG ĐI</div><small style="color:#aaa; font-size:0.7rem;">Trống</small>`;
             }
             if (currentTableId === 'takeaway') tkBtn.classList.add("selected-now");
             tkBtn.onclick = () => selectTable('takeaway');
@@ -826,19 +829,6 @@
         }
 
         function onMonthFilterChange() { isDemandExpanded = false; renderFilteredStats(); }
-
-        function initMenuSelect() {
-            const select = document.getElementById("menu-select"); select.innerHTML = "";
-            menuData.forEach(cat => {
-                const group = document.createElement("optgroup"); group.label = cat.category;
-                cat.items.forEach(item => {
-                    const opt = document.createElement("option"); opt.value = JSON.stringify(item);
-                    opt.textContent = `${item.name} - ${(item.price/1000)}k`;
-                    group.appendChild(opt);
-                });
-                select.appendChild(group);
-            });
-        }
 
         function updateRevenueDisplay() {
             let todayBills = recentBills.filter(bill => bill.date === todayStr);
