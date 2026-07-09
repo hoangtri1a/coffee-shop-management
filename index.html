@@ -154,6 +154,14 @@
         .takeaway-option input { width: 22px; height: 22px; cursor: pointer; }
         .takeaway-option label { font-weight: bold; cursor: pointer; font-size: 0.95rem; }
 
+        .fee-selector-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 8px 0;
+        }
+        .fee-selector-grid select { padding: 10px; margin-top: 2px; font-size: 0.95rem; }
+
         select, .btn-action {
             width: 100%;
             padding: 14px;
@@ -210,7 +218,7 @@
             font-size: 1.1rem;
         }
 
-        .total-price { font-size: 1.4rem; font-weight: bold; text-align: right; margin-bottom: 12px; }
+        .total-price { font-size: 1.4rem; font-weight: bold; text-align: right; margin-bottom: 12px; line-height: 1.3; }
         .btn-pay { background-color: var(--success-color); color: white; border: none; font-size: 1.1rem; cursor: pointer; padding: 14px; }
 
         .card-view {
@@ -234,7 +242,7 @@
             border-left: 4px solid var(--success-color);
         }
 
-        .bill-header { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 6px; align-items: center; }
+        .bill-header { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 6px; align-items: center; flex-wrap: wrap; gap: 5px; }
         .bill-details { font-size: 0.85rem; color: #555; padding-left: 5px; line-height: 1.4; }
         .btn-undo { background-color: var(--danger-color); color: white; border: none; padding: 5px 10px; font-size: 0.8rem; border-radius: 4px; cursor: pointer; font-weight: bold; }
 
@@ -294,10 +302,8 @@
 
         @media (min-width: 769px) {
             .main-layout { grid-template-columns: 1fr 1fr; }
-            .tables-grid { grid-template-columns: repeat(5, 1fr); }
+            .tables-grid { grid-template-columns: repeat(6, 1fr); } /* Màn rộng dàn hàng 6 bàn */
             .tab-bar { max-width: 500px; margin: 0 auto 15px auto; }
-            .summary-mini-card { font-size: 0.9rem; padding: 12px; }
-            .summary-mini-card span { font-size: 1.3rem; }
         }
     </style>
 
@@ -324,7 +330,7 @@
     <div id="tab-pos" class="tab-content active-tab-view">
         <div class="main-layout">
             <div class="tables-section">
-                <h3>Sơ đồ bàn (25 bàn)</h3>
+                <h3>Sơ đồ phục vụ (27 Bàn + Ô Mang đi)</h3>
                 <div class="tables-grid" id="tables-container"></div>
             </div>
 
@@ -334,23 +340,39 @@
                     <div class="menu-selector">
                         <label for="menu-select">Chọn món ăn/nước uống:</label>
                         <select id="menu-select"></select>
-                        <div class="takeaway-option" onclick="toggleCheckbox(event)">
-                            <input type="checkbox" id="takeaway-checkbox">
-                            <label for="takeaway-checkbox">🥡 Mua mang đi (Take-away)</label>
-                        </div>
-                        <button class="btn-action btn-add" onclick="addItemToTable()">Thêm món vào bàn</button>
+                        <button class="btn-action btn-add" style="margin-top:10px;" onclick="addItemToTable()">Thêm món vào danh sách</button>
                     </div>
-                    <h4 style="margin-top: 10px;">Món đã gọi:</h4>
+                    <h4 style="margin-top: 15px;">Món đã gọi:</h4>
                     <div class="order-list" id="current-order-list"></div>
                     
-                    <!-- NÚT TÍCH CHỌN CHUYỂN KHOẢN KHI KHÁCH THANH TOÁN (MỚI THÊM) -->
+                    <div class="fee-selector-grid">
+                        <div>
+                            <label style="font-size:0.85rem; font-weight:bold; color:var(--danger-color);">🔻 Giảm giá (%)</label>
+                            <select id="order-discount-select" onchange="renderOrderList()">
+                                <option value="0">0%</option>
+                                <option value="10">10%</option>
+                                <option value="20">20%</option>
+                                <option value="30">30%</option>
+                                <option value="50">50%</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size:0.85rem; font-weight:bold; color:var(--active-color);">🔺 Phụ thu (%)</label>
+                            <select id="order-surcharge-select" onchange="renderOrderList()">
+                                <option value="0">0%</option>
+                                <option value="10">10%</option>
+                                <option value="20">20%</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <div class="takeaway-option" id="bank-transfer-box" style="background-color: #e6f7ff; border-color: #1890ff; margin-bottom:12px;" onclick="toggleBankCheckbox(event)">
                         <input type="checkbox" id="payment-method-checkbox">
-                        <label for="payment-method-checkbox" style="color: #0050b3; font-weight: bold;">💳 Khách CHUYỂN KHOẢN / QUÉT MÃ</label>
+                        <label for="payment-method-checkbox" style="color: #0050b3; font-weight: bold; cursor:pointer;">💳 Khách CHUYỂN KHOẢN / QUÉT MÃ</label>
                     </div>
 
                     <div class="checkout-box">
-                        <div class="total-price">Tổng cộng: <span id="table-total">0</span>đ</div>
+                        <div class="total-price" id="table-total-wrapper">Tổng cộng: <span id="table-total">0</span>đ</div>
                         <button class="btn-action btn-pay" onclick="checkoutTable()">Thanh Toán & Trả Bàn</button>
                     </div>
                 </div>
@@ -358,9 +380,8 @@
         </div>
     </div>
 
-    <!-- TAB 2: KHU VỰC XEM ĐƠN TRONG NGÀY VÀ QUẢN LÝ KÉT TIỀN CỦA NHÂN VIÊN -->
+    <!-- TAB 2: KHU VỰC KẾ TOÁN THU NGÂN -->
     <div id="tab-today-bills" class="tab-content">
-        <!-- KHỐI QUẢN LÝ KÉT TIỀN THỰC TẾ TRONG NGÀY (MỚI NÂNG CẤP) -->
         <div class="card-view" style="background:#f0f5ff; border-left:5px solid #1890ff; padding:15px; border-radius:8px;">
             <h4 style="color:#0050b3; margin-bottom:12px; font-size:1.05rem;">🎛️ Báo Cáo Tiền Mặt & Két Tiền Ca Trực</h4>
             <div style="margin-bottom:12px;">
@@ -380,9 +401,7 @@
 
         <div class="card-view">
             <h3>Hóa đơn đã thanh toán hôm nay</h3>
-            <div class="scroll-list" id="today-bills-container">
-                <!-- Danh sách hóa đơn ngày đổ tại đây -->
-            </div>
+            <div class="scroll-list" id="today-bills-container"></div>
         </div>
     </div>
 
@@ -429,7 +448,6 @@
     </div>
 
     <script>
-        // Bản cấu hình mây Firebase Realtime chính thức của TINO COFFEE
         const firebaseConfig = {
             apiKey: "AIzaSyClUxh49lSWRbOj_tZvU-BAWmUHZDRhTYE",
             authDomain: "tino-coffee.firebaseapp.com",
@@ -443,41 +461,65 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        // THAY ĐỔI LỚN: CẬP NHẬT TOÀN BỘ DANH MỤC GIÁ MỚI THEO ẢNH MENU VÀ BỔ SUNG ĂN VẶT
         const menuData = [
             { category: "CÀ PHÊ", items: [
-                { id: "cf_den_phin", name: "Cafe Đen (Phin)", price: 15000 }, { id: "cf_sua_phin", name: "Cafe Sữa (Phin)", price: 17000 },
-                { id: "cf_den_may", name: "Cafe Đen Máy", price: 17000 }, { id: "cf_sua_may", name: "Cafe Sữa Máy", price: 20000 },
-                { id: "cf_den_sg", name: "Cafe Đen Sài Gòn", price: 22000 }, { id: "cf_sua_sg", name: "Cafe Sữa Sài Gòn", price: 25000 },
-                { id: "bac_xiu", name: "Bạc Xỉu", price: 25000 }, { id: "bac_xiu_muoi", name: "Bạc Xỉu Muối", price: 30000 }, { id: "cf_muoi", name: "Cà Phê Muối", price: 27000 }
+                { id: "cf_den_phin", name: "Cafe Đen (Phin)", price: 13000 }, 
+                { id: "cf_sua_phin", name: "Cafe Sữa (Phin)", price: 15000 },
+                { id: "cf_den_may", name: "Cafe Đen Máy", price: 15000 }, 
+                { id: "cf_sua_may", name: "Cafe Sữa Máy", price: 18000 },
+                { id: "cf_den_sg", name: "Cafe Đen Sài Gòn", price: 20000 }, 
+                { id: "cf_sua_sg", name: "Cafe Sữa Sài Gòn", price: 22000 },
+                { id: "bac_xiu", name: "Bạc Xỉu", price: 22000 }, 
+                { id: "bac_xiu_muoi", name: "Bạc Xỉu Muối", price: 27000 }, 
+                { id: "cf_muoi", name: "Cà Phê Muối", price: 25000 }
             ]},
             { category: "NON-CAFE", items: [
-                { id: "cacao_da_nong", name: "Cacao Đá/Nóng", price: 27000 }, { id: "tra_gung", name: "Trà Gừng", price: 25000 }, { id: "cacao_muoi", name: "Cacao Muối", price: 32000 }
+                { id: "cacao_da_nong", name: "Cacao Đá/Nóng", price: 25000 }, 
+                { id: "tra_gung", name: "Trà Gừng", price: 22000 }, 
+                { id: "cacao_muoi", name: "Cacao Muối", price: 30000 }
             ]},
             { category: "SỮA CHUA", items: [
-                { id: "sua_chua_da", name: "Sữa Yogurt Đá", price: 22000 }, { id: "sua_chua_dau", name: "Sữa Chua Dâu", price: 27000 },
-                { id: "sua_chua_viet_quat", name: "Sữa Chua Việt Quất", price: 27000 }, { id: "sua_chua_dao", name: "Sữa Chua Đào", price: 27000 }
+                { id: "sua_chua_da", name: "Sữa Chua Đá", price: 20000 }, 
+                { id: "sua_chua_dau", name: "Sữa Chua Dâu", price: 25000 },
+                { id: "sua_chua_viet_quat", name: "Sữa Chua Việt Quất", price: 25000 }, 
+                { id: "sua_chua_dao", name: "Sữa Chua Đào", price: 25000 }
             ]},
             { category: "NƯỚC GIẢI KHÁT", items: [
-                { id: "khoang", name: "Khoáng", price: 15000 }, { id: "khoang_sua", name: "Khoáng Sữa", price: 17000 },
-                { id: "sting_vang", name: "Sting Vàng", price: 16000 }, { id: "sting_dau", name: "Sting Dâu", price: 17000 }, { id: "bo_huc", name: "Bò Húc", price: 22000 }
+                { id: "khoang", name: "Khoáng", price: 13000 }, 
+                { id: "khoang_sua", name: "Khoáng Sữa", price: 15000 },
+                { id: "sting_vang", name: "Sting Vàng", price: 15000 }, 
+                { id: "sting_dau", name: "Sting Dâu", price: 16000 }, 
+                { id: "bo_huc", name: "Bò Húc", price: 22000 }
             ]},
             { category: "TRÀ TRÁI CÂY", items: [
-                { id: "tra_chanh_dau", name: "Trà Chanh Dâu", price: 25000 }, { id: "tra_dao_tt", name: "Trà Đào Truyền Thống", price: 27000 },
-                { id: "tra_chanh_vq", name: "Trà Chanh Việt Quất", price: 25000 }, { id: "tra_chanh_tt", name: "Trà Chanh Truyền Thống", price: 22000 }
+                { id: "tra_chanh_dau", name: "Trà Chanh Dâu", price: 25000 }, 
+                { id: "tra_dao_tt", name: "Trà Đào Truyền Thống", price: 25000 },
+                { id: "tra_chanh_vq", name: "Trà Chanh Việt Quất", price: 25000 }, 
+                { id: "tra_chanh_tt", name: "Trà Chanh Truyền Thống", price: 20000 }
             ]},
             { category: "NƯỚC TRÁI CÂY", items: [
-                { id: "nuoc_ep_cam", name: "Nước Ép Cam", price: 25000 }, { id: "nuoc_ep_ca_rot", name: "Nước Ép Cà Rốt", price: 25000 },
-                { id: "nuoc_ep_thom", name: "Nước Ép Thơm", price: 25000 }, { id: "sinh_to_bo", name: "Sinh Tố Bơ", price: 30000 }, { id: "chanh_tuoi_xi_muoi", name: "Nước Chanh Tươi Xí Muội", price: 22000 }
+                { id: "nuoc_ep_cam", name: "Nước Ép Cam", price: 22000 }, 
+                { id: "nuoc_ep_ca_rot", name: "Nước Ép Cà Rốt", price: 22000 },
+                { id: "nuoc_ep_thom", name: "Nước Ép Thơm", price: 22000 }, 
+                { id: "sinh_to_bo", name: "Sinh Tố Bơ", price: 27000 }, 
+                { id: "nuoc_chanh_tuoi_xi_muoi", name: "Nước Chanh Tươi Xí Muội", price: 20000 }
             ]},
             { category: "ĐÁ XAY", items: [
-                { id: "cacao_da_xay", name: "Cacao Đá Xay", price: 32000 }, { id: "da_xay_vq", name: "Đá Xay Việt Quất", price: 32000 }, { id: "da_xay_dau", name: "Đá Xay Dâu", price: 32000 }
+                { id: "cacao_da_xay", name: "Cacao Đá Xay", price: 30000 }, 
+                { id: "da_xay_vq", name: "Đá Xay Việt Quất", price: 30000 }, 
+                { id: "da_xay_dau", name: "Đá Xay Dâu", price: 30000 }
+            ]},
+            { category: "ĂN VẶT & KHÁC", items: [
+                { id: "thuoc_la", name: "Thuốc lá", price: 25000 },
+                { id: "hat_dua_huong_duong", name: "Hạt dưa / Hướng dương", price: 13000 }
             ]}
         ];
 
         let tables = {};
         let revenueHistory = {};
         let recentBills = [];
-        let initialCash = 0; // Số tiền két ban đầu
+        let initialCash = 0; 
         let currentTableId = null;
         let isDemandExpanded = false; 
         let isAdminAuthenticated = false; 
@@ -488,21 +530,21 @@
         }
         const todayStr = getTodayString();
 
-        // LẮNG NGHE ĐỒNG BỘ ĐÁM MÂY REALTIME
         db.ref('tino_coffee_store').on('value', (snapshot) => {
             const data = snapshot.val() || {};
             
             let cloudTables = data.tables || {};
             tables = {};
-            for (let i = 1; i <= 25; i++) {
+            // NÂNG CẤP: Thay đổi vòng lặp cấu trúc lên đến 27 bàn phục vụ trực tuyến
+            for (let i = 1; i <= 27; i++) {
                 tables[i] = { orderList: [] };
-                if (cloudTables[i]) {
-                    if (cloudTables[i].orderList) {
-                        tables[i].orderList = Array.isArray(cloudTables[i].orderList) 
-                            ? cloudTables[i].orderList 
-                            : Object.values(cloudTables[i].orderList);
-                    }
+                if (cloudTables[i] && cloudTables[i].orderList) {
+                    tables[i].orderList = Array.isArray(cloudTables[i].orderList) ? cloudTables[i].orderList : Object.values(cloudTables[i].orderList);
                 }
+            }
+            tables['takeaway'] = { orderList: [] };
+            if (cloudTables['takeaway'] && cloudTables['takeaway'].orderList) {
+                tables['takeaway'].orderList = Array.isArray(cloudTables['takeaway'].orderList) ? cloudTables['takeaway'].orderList : Object.values(cloudTables['takeaway'].orderList);
             }
             
             revenueHistory = data.revenueHistory || {};
@@ -519,7 +561,6 @@
                 recentBills = [];
             }
 
-            // Đồng bộ số tiền mặt đầu ca (Tránh giật tiêu điểm khi nhân viên đang nhập)
             initialCash = data.initialCash || 0;
             if (document.activeElement !== document.getElementById("initial-cash-input")) {
                 document.getElementById("initial-cash-input").value = initialCash;
@@ -530,7 +571,6 @@
             
             renderTables();
             updateRevenueDisplay();
-            renderTodayBillsOnly(); 
             buildMonthDropdownOptions(); 
             renderFilteredStats(); 
             if (currentTableId) renderOrderList();
@@ -553,20 +593,16 @@
             pushDataToCloud();
         }
 
-        document.addEventListener("DOMContentLoaded", () => {
-            document.getElementById("today-date").textContent = todayStr.replace(/-/g, '/');
-            initMenuSelect();
-        });
-
         function switchTab(tabName) {
             if (tabName === 'admin' && !isAdminAuthenticated) {
-                let pinInput = prompt("🔑 Vui lòng nhập mật khẩu Quản lý để xem dữ liệu nhạy cảm:");
-                if (pinInput === '472005') {
+                let pass = prompt("Vui lòng nhập mật khẩu Quản lý của Chủ quán để tiếp tục:");
+                if (pass === "472005") {
                     isAdminAuthenticated = true;
                     document.getElementById("revenue-title-area").style.display = "block";
                 } else {
-                    alert("❌ Mật khẩu sai! Quyền truy cập bị từ chối.");
-                    return; 
+                    alert("Mật khẩu không chính xác! Quyền truy cập bị từ chối.");
+                    document.getElementById('nav-pos').click();
+                    return;
                 }
             }
 
@@ -580,57 +616,71 @@
                 document.getElementById('tab-today-bills').classList.add('active-tab-view');
                 document.getElementById('nav-today-bills').classList.add('active-tab-nav');
                 renderTodayBillsOnly();
-            } else if (tabName === 'admin') {
+            } else {
                 document.getElementById('tab-admin').classList.add('active-tab-view');
                 document.getElementById('nav-admin').classList.add('active-tab-nav');
                 renderFilteredStats();
             }
         }
 
-        // TAB NHÂN VIÊN: Tính toán và phân bổ Két Tiền mặt & Chuyển khoản riêng
-        function renderTodayBillsOnly() {
-            const container = document.getElementById("today-bills-container");
-            if (!container) return;
-            container.innerHTML = "";
-
-            let todayBills = recentBills.filter(bill => bill.date === todayStr);
-
-            // Thuật toán tính doanh thu tiền mặt và ngân hàng hôm nay
-            let cashRevenue = 0;
-            let bankRevenue = 0;
-            todayBills.forEach(b => {
-                if (b.paymentMethod === "chuyen_khoan") bankRevenue += b.total;
-                else cashRevenue += b.total;
-            });
-
-            // Cập nhật số lên bảng két tiền mặt của ca trực
-            document.getElementById("today-cash-revenue").textContent = cashRevenue.toLocaleString('vi-VN');
-            document.getElementById("today-bank-revenue").textContent = bankRevenue.toLocaleString('vi-VN') + "đ";
+        // PHẦN HIỂN THỊ SƠ ĐỒ PHỤC VỤ (27 BÀN + MANG ĐI)
+        function renderTables() {
+            const container = document.getElementById("tables-container"); container.innerHTML = "";
             
-            let parsedInitial = parseInt(initialCash) || 0;
-            document.getElementById("total-cash-in-drawer").textContent = (parsedInitial + cashRevenue).toLocaleString('vi-VN');
-
-            if (todayBills.length === 0) {
-                container.innerHTML = `<div style="color:#aaa; text-align:center; padding:10px;">Chưa phục vụ bàn nào hôm nay</div>`;
-                return;
+            // NÂNG CẤP: Tạo lập giao diện mở rộng đủ 27 ô nút bàn trên thiết bị
+            for (let i = 1; i <= 27; i++) {
+                const btn = document.createElement("button");
+                btn.className = "table-btn"; btn.id = `table-${i}`;
+                if (tables[i] && tables[i].orderList && tables[i].orderList.length > 0) {
+                    btn.classList.add("active-table");
+                    btn.innerHTML = `<div>Bàn ${i}</div><small style="font-size:0.7rem;">Có khách</small>`;
+                } else {
+                    btn.innerHTML = `<div>Bàn ${i}</div><small style="color:#aaa; font-size:0.7rem;">Trống</small>`;
+                }
+                if (currentTableId == i) btn.classList.add("selected-now");
+                btn.onclick = () => selectTable(i);
+                container.appendChild(btn);
             }
 
+            const tkBtn = document.createElement("button");
+            tkBtn.className = "table-btn"; tkBtn.id = "table-takeaway";
+            tkBtn.style.backgroundColor = "#fff5e6";
+            tkBtn.style.borderColor = "var(--active-color)";
+            
+            if (tables['takeaway'] && tables['takeaway'].orderList && tables['takeaway'].orderList.length > 0) {
+                tkBtn.classList.add("active-table");
+                tkBtn.innerHTML = `<div style="color:var(--dark-color)">🥡 MANG ĐI</div><small style="font-size:0.7rem;">Có đơn</small>`;
+            } else {
+                tkBtn.innerHTML = `<div style="color:var(--primary-color)">🥡 MANG ĐI</div><small style="color:#aaa; font-size:0.7rem;">Trống</small>`;
+            }
+            if (currentTableId === 'takeaway') tkBtn.classList.add("selected-now");
+            tkBtn.onclick = () => selectTable('takeaway');
+            container.appendChild(tkBtn);
+        }
+
+        function renderTodayBillsOnly() {
+            const container = document.getElementById("today-bills-container"); container.innerHTML = "";
+            let todayBills = recentBills.filter(bill => bill.date === todayStr);
+            if (todayBills.length === 0) { container.innerHTML = `<div style="color:#aaa; text-align:center; padding:10px;">Chưa có hóa đơn nào thanh toán hôm nay</div>`; return; }
+            
             todayBills.forEach(bill => {
                 const div = document.createElement("div"); div.className = "bill-item";
                 let itemsDetailHTML = bill.orderList.map(i => `• ${i.name}${i.isTakeAway?' (Mang đi)':''} x${i.qty}`).join('<br>');
-                
-                // Nhãn hiển thị hình thức trả tiền
                 let methodText = bill.paymentMethod === "chuyen_khoan" ? "💳 Chuyển khoản" : "💵 Tiền mặt";
-                let methodColor = bill.paymentMethod === "chuyen_khoan" ? "#0050b3" : "#6F4E37";
+                let feeInfo = `Tạm tính: ${bill.subtotal.toLocaleString()}đ`;
+                if(bill.discount > 0) feeInfo += ` | Giảm ${bill.discount}%`;
+                if(bill.surcharge > 0) feeInfo += ` | Phụ thu ${bill.surcharge}%`;
 
                 div.innerHTML = `
                     <div class="bill-header">
-                        <span>Bàn ${bill.tableId} <small style="color:#666; font-weight:normal;">(${bill.time})</small></span>
-                        <span style="font-size:0.75rem; padding:3px 8px; background:#f0f0f0; border-radius:4px; color:${methodColor}; font-weight:bold;">${methodText}</span>
+                        <span><strong>Bàn ${bill.tableId === 'takeaway'?'Mang Đi':bill.tableId}</strong> <small style="color:#666;">(${bill.time})</small></span>
+                        <span style="font-size:0.75rem; font-weight:bold;">${methodText}</span>
                         <button class="btn-undo" onclick="undoCheckout('${bill.id}')">Hủy</button>
                     </div>
-                    <div class="bill-details" style="color: var(--dark-color); font-weight: 500; margin-top:5px;">
+                    <div class="bill-details" style="margin-top:5px;">
                         ${itemsDetailHTML}
+                        <div style="font-size:0.75rem; color:#888; margin-top:4px;">${feeInfo}</div>
+                        <div style="text-align:right; font-weight:bold; color:var(--danger-color); font-size:1.05rem;">Tổng thu: ${bill.total.toLocaleString('vi-VN')}đ</div>
                     </div>
                 `;
                 container.appendChild(div);
@@ -734,16 +784,20 @@
             } else {
                 filteredBills.forEach(bill => {
                     const div = document.createElement("div"); div.className = "bill-item";
-                    let itemsDetailHTML = bill.orderList.map(i => `• ${i.name}${i.isTakeAway?' (Mang đi)':''} x${i.qty} - ${(i.price*i.qty).toLocaleString('vi-VN')}đ`).join('<br>');
+                    let itemsDetailHTML = bill.orderList.map(i => `• ${i.name}${i.isTakeAway?' (Mang đi)':''} x${i.qty}`).join('<br>');
                     let methodLabel = bill.paymentMethod === "chuyen_khoan" ? "[CK]" : "[TM]";
-                    
+                    let breakdownStr = `Tạm tính: ${bill.subtotal.toLocaleString()}đ`;
+                    if(bill.discount > 0) breakdownStr += ` - Giảm ${bill.discount}%`;
+                    if(bill.surcharge > 0) breakdownStr += ` + Phụ thu ${bill.surcharge}%`;
+
                     div.innerHTML = `
                         <div class="bill-header">
-                            <span>Bàn ${bill.tableId} <small style="color:#666; font-weight:normal;">(${bill.date.replace(/-/g, '/')} ${bill.time}) ${methodLabel}</small></span>
+                            <span>Bàn ${bill.tableId === 'takeaway'?'Mang Đi':bill.tableId} <small style="color:#666; font-weight:normal;">(${bill.date.replace(/-/g, '/')} ${bill.time}) ${methodLabel}</small></span>
                         </div>
                         <div class="bill-details">
                             ${itemsDetailHTML}
-                            <div style="text-align:right; font-weight:bold; color:var(--danger-color); margin-top:4px;">Tổng: ${bill.total.toLocaleString('vi-VN')}đ</div>
+                            <div style="font-size:0.75rem; color:#888; margin-top:3px;">${breakdownStr}</div>
+                            <div style="text-align:right; font-weight:bold; color:var(--danger-color); margin-top:4px;">Tổng thu: ${bill.total.toLocaleString('vi-VN')}đ</div>
                         </div>
                     `;
                     billsContainer.appendChild(div);
@@ -773,23 +827,6 @@
 
         function onMonthFilterChange() { isDemandExpanded = false; renderFilteredStats(); }
 
-        function renderTables() {
-            const container = document.getElementById("tables-container"); container.innerHTML = "";
-            for (let i = 1; i <= 25; i++) {
-                const btn = document.createElement("button");
-                btn.className = "table-btn"; btn.id = `table-${i}`;
-                if (tables[i] && tables[i].orderList && tables[i].orderList.length > 0) {
-                    btn.classList.add("active-table");
-                    btn.innerHTML = `<div>Bàn ${i}</div><small style="font-size:0.7rem;">Có khách</small>`;
-                } else {
-                    btn.innerHTML = `<div>Bàn ${i}</div><small style="color:#aaa; font-size:0.7rem;">Trống</small>`;
-                }
-                if (currentTableId == i) btn.classList.add("selected-now");
-                btn.onclick = () => selectTable(i);
-                container.appendChild(btn);
-            }
-        }
-
         function initMenuSelect() {
             const select = document.getElementById("menu-select"); select.innerHTML = "";
             menuData.forEach(cat => {
@@ -804,15 +841,40 @@
         }
 
         function updateRevenueDisplay() {
-            document.getElementById("daily-revenue").textContent = (revenueHistory[todayStr] || 0).toLocaleString('vi-VN');
+            let todayBills = recentBills.filter(bill => bill.date === todayStr);
+            let cashRevenue = 0;
+            let bankRevenue = 0;
+            todayBills.forEach(b => {
+                if (b.paymentMethod === "chuyen_khoan") bankRevenue += b.total;
+                else cashRevenue += b.total;
+            });
+
+            document.getElementById("daily-revenue").textContent = (cashRevenue + bankRevenue).toLocaleString('vi-VN');
+            
+            if(document.getElementById("today-cash-revenue")){
+                document.getElementById("today-cash-revenue").textContent = cashRevenue.toLocaleString('vi-VN');
+                document.getElementById("today-bank-revenue").textContent = bankRevenue.toLocaleString('vi-VN') + "đ";
+                let parsedInitial = parseInt(initialCash) || 0;
+                document.getElementById("total-cash-in-drawer").textContent = (parsedInitial + cashRevenue).toLocaleString('vi-VN');
+            }
         }
 
         function selectTable(tableId) {
             currentTableId = tableId;
             document.querySelectorAll('.table-btn').forEach(b => b.classList.remove('selected-now'));
-            if (document.getElementById(`table-${tableId}`)) document.getElementById(`table-${tableId}`).classList.add('selected-now');
-            document.getElementById("order-title").textContent = `Đang chọn: BÀN ${tableId}`;
+            
+            if (tableId === 'takeaway') {
+                document.getElementById('table-takeaway').classList.add('selected-now');
+                document.getElementById("order-title").textContent = `Đang chọn: 🥡 ĐƠN MANG ĐI`;
+            } else {
+                if (document.getElementById(`table-${tableId}`)) document.getElementById(`table-${tableId}`).classList.add('selected-now');
+                document.getElementById("order-title").textContent = `Đang chọn: BÀN ${tableId}`;
+            }
+            
             document.getElementById("order-controls").style.display = "block";
+            document.getElementById("order-discount-select").value = "0";
+            document.getElementById("order-surcharge-select").value = "0";
+            
             renderOrderList();
 
             if (window.innerWidth <= 768) {
@@ -823,9 +885,12 @@
         function renderOrderList() {
             const listContainer = document.getElementById("current-order-list"); listContainer.innerHTML = "";
             if (!currentTableId || !tables[currentTableId]) return;
-            const currentOrder = tables[currentTableId].orderList || []; let total = 0;
+            
+            const currentOrder = tables[currentTableId].orderList || []; 
+            let subtotal = 0; 
+            
             currentOrder.forEach((item, index) => {
-                const itemTotal = item.price * item.qty; total += itemTotal;
+                const itemTotal = item.price * item.qty; subtotal += itemTotal;
                 const div = document.createElement("div"); div.className = "order-item";
                 div.innerHTML = `<div><strong>${item.name}${item.isTakeAway ? '<span class="badge-takeaway">Mang đi</span>' : ''}</strong><br><small style="color:#666">${item.price.toLocaleString('vi-VN')}đ</small></div>
                     <div class="item-controls">
@@ -834,25 +899,36 @@
                     </div>`;
                 listContainer.appendChild(div);
             });
-            document.getElementById("table-total").textContent = total.toLocaleString('vi-VN');
+
+            let discountPct = parseInt(document.getElementById("order-discount-select").value) || 0;
+            let surchargePct = parseInt(document.getElementById("order-surcharge-select").value) || 0;
+            
+            let discountAmt = subtotal * (discountPct / 100);
+            let surchargeAmt = subtotal * (surchargePct / 100);
+            let finalTotal = subtotal - discountAmt + surchargeAmt;
+
+            let mathBreakdownStr = `Tạm tính: ${subtotal.toLocaleString()}đ`;
+            if (discountPct > 0) mathBreakdownStr += ` | Giảm ${discountPct}% (-${discountAmt.toLocaleString()}đ)`;
+            if (surchargePct > 0) mathBreakdownStr += ` | Phụ thu ${surchargePct}% (+${surchargeAmt.toLocaleString()}đ)`;
+
+            document.getElementById("table-total-wrapper").innerHTML = `
+                <span style="font-size:0.8rem; font-weight:normal; color:#666; display:block; margin-bottom:4px;">${mathBreakdownStr}</span>
+                Tổng cộng: <span id="table-total">${finalTotal.toLocaleString('vi-VN')}</span>đ
+            `;
         }
 
-        function toggleCheckbox(e) { if (e.target.tagName !== 'INPUT') { const cb = document.getElementById("takeaway-checkbox"); cb.checked = !cb.checked; } }
-        
-        // Helper tích chọn nhanh phương thức ngân hàng
         function toggleBankCheckbox(e) { if (e.target.tagName !== 'INPUT') { const cb = document.getElementById("payment-method-checkbox"); cb.checked = !cb.checked; } }
 
         function addItemToTable() {
             if (!currentTableId) return;
             const select = document.getElementById("menu-select"); const itemInfo = JSON.parse(select.value);
-            const isTakeAway = document.getElementById("takeaway-checkbox").checked;
+            const isTakeAway = (currentTableId === 'takeaway') ? true : false;
             
             if (!tables[currentTableId].orderList) tables[currentTableId].orderList = [];
             const currentOrder = tables[currentTableId].orderList;
             const existingItem = currentOrder.find(i => i.id === itemInfo.id && (i.isTakeAway || false) === isTakeAway);
             
             if (existingItem) { existingItem.qty += 1; } else { currentOrder.push({ id: itemInfo.id, name: itemInfo.name, price: itemInfo.price, qty: 1, isTakeAway: isTakeAway }); }
-            document.getElementById("takeaway-checkbox").checked = false;
             
             renderOrderList();
             pushDataToCloud(); 
@@ -866,37 +942,48 @@
             pushDataToCloud(); 
         }
 
-        // HÀM THANH TOÁN: Đóng gói gắn nhãn phương thức thanh toán đẩy lên đám mây
         function checkoutTable() {
             if (!currentTableId) return;
             const currentOrder = tables[currentTableId].orderList;
-            if (!currentOrder || currentOrder.length === 0) { alert("Bàn này trống!"); return; }
-            let total = currentOrder.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            if (!currentOrder || currentOrder.length === 0) { alert("Danh sách món trống!"); return; }
             
-            // Đọc trạng thái nút tích chuyển khoản
+            let subtotal = currentOrder.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            let discountPct = parseInt(document.getElementById("order-discount-select").value) || 0;
+            let surchargePct = parseInt(document.getElementById("order-surcharge-select").value) || 0;
+            
+            let discountAmt = subtotal * (discountPct / 100);
+            let surchargeAmt = subtotal * (surchargePct / 100);
+            let finalTotal = subtotal - discountAmt + surchargeAmt;
+            
             const isBankTransfer = document.getElementById("payment-method-checkbox").checked;
             const finalMethod = isBankTransfer ? "chuyen_khoan" : "tien_mat";
-            let confirmMsg = isBankTransfer ? "thanh toán CHUYỂN KHOẢN" : "thanh toán TIỀN MẶT";
+            let confirmMsg = isBankTransfer ? "CHUYỂN KHOẢN" : "TIỀN MẶT";
 
-            if (confirm(`Xác nhận ${confirmMsg} Bàn ${currentTableId}\nTổng: ${total.toLocaleString('vi-VN')}đ?`)) {
+            let labelTable = (currentTableId === 'takeaway') ? "Đơn mang đi" : `Bàn ${currentTableId}`;
+
+            if (confirm(`Xác nhận thanh toán ${confirmMsg} cho ${labelTable}\nSố tiền cần thu: ${finalTotal.toLocaleString('vi-VN')}đ?`)) {
                 const activeTodayStr = getTodayString(); const now = new Date();
                 const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
                 
                 recentBills.unshift({
                     id: 'bill_' + Date.now(), 
                     tableId: currentTableId, 
-                    total: total, 
+                    subtotal: subtotal,
+                    discount: discountPct,
+                    surcharge: surchargePct,
+                    total: finalTotal, 
                     time: timeStr, 
                     date: activeTodayStr,
-                    paymentMethod: finalMethod, // Lưu nhãn thanh toán
+                    paymentMethod: finalMethod, 
                     orderList: JSON.parse(JSON.stringify(currentOrder))
                 });
 
-                revenueHistory[activeTodayStr] = (revenueHistory[activeTodayStr] || 0) + total;
+                revenueHistory[activeTodayStr] = (revenueHistory[activeTodayStr] || 0) + finalTotal;
                 tables[currentTableId].orderList = [];
                 
-                // Trả ô tích chọn về mặc định ban đầu
                 document.getElementById("payment-method-checkbox").checked = false;
+                document.getElementById("order-discount-select").value = "0";
+                document.getElementById("order-surcharge-select").value = "0";
                 document.getElementById("order-title").textContent = "Vui lòng chọn bàn...";
                 document.getElementById("order-controls").style.display = "none";
                 currentTableId = null;
@@ -908,7 +995,9 @@
         function undoCheckout(billId) {
             const billIndex = recentBills.findIndex(b => b.id === billId); if (billIndex === -1) return;
             const bill = recentBills[billIndex];
-            if (confirm(`HỦY hóa đơn nhầm lẫn này của BÀN ${bill.tableId}?`)) {
+            
+            let labelTable = (bill.tableId === 'takeaway') ? "Đơn mang đi" : `Bàn ${bill.tableId}`;
+            if (confirm(`HỦY hóa đơn nhầm lẫn này của ${labelTable}?`)) {
                 if (revenueHistory[bill.date]) { revenueHistory[bill.date] -= bill.total; if (revenueHistory[bill.date] < 0) revenueHistory[bill.date] = 0; }
                 
                 if (!tables[bill.tableId].orderList) tables[bill.tableId].orderList = [];
@@ -943,6 +1032,7 @@
             let totalTakeaway = 0;
             let totalCash = 0;
             let totalBank = 0;
+            let totalMoney = filteredBills.reduce((sum, b) => sum + b.total, 0);
 
             filteredBills.forEach(bill => {
                 if (bill.paymentMethod === "chuyen_khoan") totalBank += bill.total;
@@ -960,13 +1050,18 @@
 
             let reportWindow = window.open('', '_blank');
             let billsHTML = filteredBills.map((bill) => {
-                let itemsText = bill.orderList.map(i => `  + ${i.name}${i.isTakeAway?'(MĐ)':''} x${i.qty} - ${(i.price*i.qty).toLocaleString('vi-VN')}đ`).join('<br>');
+                let itemsText = bill.orderList.map(i => `  + ${i.name}${i.isTakeAway?'(MĐ)':''} x${i.qty}`).join('<br>');
                 let mLabel = bill.paymentMethod === "chuyen_khoan" ? "Chuyển khoản" : "Tiền mặt";
+                let feeText = `Tạm tính: ${bill.subtotal.toLocaleString()}đ`;
+                if(bill.discount > 0) feeText += ` - Giảm ${bill.discount}%`;
+                if(bill.surcharge > 0) feeText += ` + Phụ thu ${bill.surcharge}%`;
+
                 return `
                     <div style="margin-bottom: 10px; border-bottom: 1px dashed #ccc; padding-bottom: 6px;">
-                        <strong>Bàn ${bill.tableId} (${bill.date.replace(/-/g, '/')} ${bill.time}) [${mLabel}]</strong><br>
+                        <strong>Bàn ${bill.tableId === 'takeaway'?'Mang Đi':bill.tableId} (${bill.time}) [${mLabel}]</strong><br>
                         ${itemsText}<br>
-                        <div style="text-align: right;">Tiền bàn: <strong>${bill.total.toLocaleString('vi-VN')}đ</strong></div>
+                        <small style="color:#555; display:block;">${feeText}</small>
+                        <div style="text-align: right;">Tổng thu đơn: <strong>${bill.total.toLocaleString('vi-VN')}đ</strong></div>
                     </div>
                 `;
             }).join('');
@@ -988,7 +1083,7 @@
                     <h3>BÁO CÁO DOANH THU THÁNG</h3>
                     <p class="text-center">Kỳ đối soát: Tháng ${targetMonthYear.replace('-', '/')}</p>
                     <div class="hr-double"></div>
-                    <p class="total-summary">TỔNG DOANH THU: ${totalMoney.toLocaleString('vi-VN')}đ</p>
+                    <p class="total-summary">TỔNG DOANH THU THÁNG: ${totalMoney.toLocaleString('vi-VN')}đ</p>
                     <p style="padding-left:10px;">• Tiền mặt thu được:  <strong>${totalCash.toLocaleString('vi-VN')}đ</strong></p>
                     <p style="padding-left:10px;">• Ngân hàng nhận CK: <strong>${totalBank.toLocaleString('vi-VN')}đ</strong></p>
                     <div class="hr-double"></div>
