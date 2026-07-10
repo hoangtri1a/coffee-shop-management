@@ -779,13 +779,11 @@
             else select.value = currentMonthYearStr;
         }
 
-        // CHỨC NĂNG CỐT LÕI: KHÔI PHỤC DỮ LIỆU LỊCH SỬ VÀ HIỂN THỊ SỐ ĐƠN THÔNG MINH BẢO MẬT
         function renderFilteredStats() {
             if (!isAdminAuthenticated) return;
             const targetMonthYear = document.getElementById("report-month-select").value;
             if (!targetMonthYear) return;
 
-            // 1. Lọc hóa đơn của tháng đang chọn
             let filteredBills = recentBills.filter(bill => {
                 if (!bill.date) return false;
                 let parts = bill.date.split('-');
@@ -814,7 +812,6 @@
 
             let sortedDemandArr = Object.entries(itemDemandDict).sort((a, b) => b[1] - a[1]);
 
-            // Đổ bảng phân tích nhu cầu món
             const demandContainer = document.getElementById("item-demand-container");
             demandContainer.innerHTML = "";
             if (sortedDemandArr.length === 0) {
@@ -840,7 +837,6 @@
                 }
             }
 
-            // Đổ danh sách hóa đơn chi tiết tháng
             const billsContainer = document.getElementById("all-month-bills-container");
             billsContainer.innerHTML = "";
             if (filteredBills.length === 0) {
@@ -870,12 +866,9 @@
                 });
             }
 
-            // =================================================================
-            // 🛠️ BỘ CỨU HỘ & GIẢI NÉN DỮ LIỆU LỊCH SỬ KHÔNG LO MẤT DATA CŨ 
-            // =================================================================
+            // BỘ CỨU HỘ & TÍNH TOÁN SỐ LƯỢNG MÓN TỪNG NGÀY TRỰC TIẾP
             let flatRevenueHistory = {};
             
-            // Bước 1: Quét cứu hộ định dạng thư mục cũ (do dấu gạch chéo tạo nhánh cây trên mây)
             if (revenueHistory && typeof revenueHistory === 'object') {
                 Object.keys(revenueHistory).forEach(key1 => {
                     let val1 = revenueHistory[key1];
@@ -901,30 +894,38 @@
                 });
             }
 
-            // Bước 2: Tự động gom nhóm tính tổng doanh thu & số đơn trực tiếp từ hóa đơn thực tế
             let calculatedDailyRevenue = {};
             let calculatedDailyOrders = {};
-            
+            let calculatedDailyItems = {}; // BIẾN MỚI: Cộng dồn số ly nước pha chế của từng ngày
+
             filteredBills.forEach(bill => {
                 if (bill.date) {
                     let standardizedDate = bill.date.replace(/\//g, '-');
                     calculatedDailyRevenue[standardizedDate] = (calculatedDailyRevenue[standardizedDate] || 0) + (parseFloat(bill.total) || 0);
                     calculatedDailyOrders[standardizedDate] = (calculatedDailyOrders[standardizedDate] || 0) + 1;
+
+                    // Duyệt mảng đếm tổng số ly nước/phần của đơn đó
+                    let itemSum = 0;
+                    if (bill.orderList) {
+                        bill.orderList.forEach(item => {
+                            itemSum += (parseInt(item.qty) || 0);
+                        });
+                    }
+                    calculatedDailyItems[standardizedDate] = (calculatedDailyItems[standardizedDate] || 0) + itemSum;
                 }
             });
 
-            // Bước 3: Trộn dữ liệu cũ và dữ liệu mới dứt khoát
             let finalDailyStats = {};
             Object.keys(flatRevenueHistory).forEach(date => {
-                finalDailyStats[date] = { revenue: flatRevenueHistory[date], orders: 0 };
+                finalDailyStats[date] = { revenue: flatRevenueHistory[date], orders: 0, items: 0 };
             });
             Object.keys(calculatedDailyRevenue).forEach(date => {
-                if (!finalDailyStats[date]) finalDailyStats[date] = { revenue: 0, orders: 0 };
-                finalDailyStats[date].revenue = calculatedDailyRevenue[date]; // Lấy số từ hóa đơn chuẩn xác thời gian thực
+                if (!finalDailyStats[date]) finalDailyStats[date] = { revenue: 0, orders: 0, items: 0 };
+                finalDailyStats[date].revenue = calculatedDailyRevenue[date];
                 finalDailyStats[date].orders = calculatedDailyOrders[date];
+                finalDailyStats[date].items = calculatedDailyItems[date] || 0; // Gán số lượng ly nước khôi phục
             });
 
-            // Bước 4: Đổ dữ liệu ra màn hình bảo mật
             const historyContainer = document.getElementById("history-container");
             historyContainer.innerHTML = "";
             
@@ -941,9 +942,9 @@
                     let stats = finalDailyStats[date];
                     const div = document.createElement("div"); div.className = "history-item";
                     
-                    // Nếu là ngày cũ không có hóa đơn lưu vết, tạm ẩn text số đơn để không bị hiện (0 đơn) nhầm lẫn
+                    // NÂNG CẤP HIỂN THỊ: Hiện song song cả (Số đơn - Số món) cực kỳ chuẩn chỉnh
                     let orderTextHTML = (stats.orders > 0 || date === todayStr) 
-                        ? `<small style="color:#e63946; font-weight:bold; margin-left:6px;">(${stats.orders} đơn)</small>` 
+                        ? `<small style="color:#e63946; font-weight:bold; margin-left:6px;">(${stats.orders} đơn - ${stats.items} món)</small>` 
                         : '';
 
                     div.innerHTML = `
@@ -1141,6 +1142,7 @@
             }
         }
 
+        // PHÔI IN: Xuất đủ dữ liệu số đơn, món và tỷ lệ mang đi
         function printFilteredReport() {
             const targetMonthYear = document.getElementById("report-month-select").value;
             if (!targetMonthYear) return;
