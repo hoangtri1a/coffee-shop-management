@@ -597,7 +597,6 @@
                 recentBills = [];
             }
 
-            // SỬA LỖI: Đồng bộ initialCash chuẩn xác không bị đè đứt đoạn
             initialCash = parseFloat(data.initialCash) || 0;
             if (document.activeElement !== document.getElementById("initial-cash-input")) {
                 document.getElementById("initial-cash-input").value = initialCash > 0 ? initialCash : "";
@@ -607,7 +606,7 @@
             document.getElementById("net-status").style.color = "#2ec4b6";
             
             renderTables();
-            updateRevenueAndCashDisplay(); // Gọi hàm tính két tiền mặt/chuyển khoản chuẩn hóa mới
+            updateRevenueAndCashDisplay(); 
             renderTodayBillsOnly(); 
             buildMonthDropdownOptions(); 
             renderFilteredStats(); 
@@ -617,7 +616,6 @@
             document.getElementById("net-status").style.color = "#e71d36";
         });
 
-        // SỬA LỖI ĐỒNG BỘ: pushDataToCloud luôn mang theo initialCash an toàn lên mây
         function pushDataToCloud() {
             db.ref('tino_coffee_store').set({
                 tables: tables,
@@ -662,7 +660,6 @@
             }
         }
 
-        // CHUẨN HÓA: Hàm xử lý dòng tiền két và doanh thu dứt khoát thời gian thực
         function updateRevenueAndCashDisplay() {
             let todayBills = recentBills.filter(bill => bill.date === todayStr);
             let cashRevenue = 0;
@@ -720,8 +717,7 @@
             const container = document.getElementById("today-bills-container"); container.innerHTML = "";
             let todayBills = recentBills.filter(bill => bill.date === todayStr);
             
-            updateRevenueAndCashDisplay(); // Đồng bộ số liệu két tiền mặt liên tục khi chạy đơn
-            
+            updateRevenueAndCashDisplay(); 
             if (todayBills.length === 0) { container.innerHTML = `<div style="color:#aaa; text-align:center; padding:10px;">Chưa có hóa đơn nào thanh toán hôm nay</div>`; return; }
             
             todayBills.forEach(bill => {
@@ -783,11 +779,13 @@
             else select.value = currentMonthYearStr;
         }
 
+        // CHỨC NĂNG CỐT LÕI: KHÔI PHỤC DỮ LIỆU LỊCH SỬ VÀ HIỂN THỊ SỐ ĐƠN THÔNG MINH BẢO MẬT
         function renderFilteredStats() {
             if (!isAdminAuthenticated) return;
             const targetMonthYear = document.getElementById("report-month-select").value;
             if (!targetMonthYear) return;
 
+            // 1. Lọc hóa đơn của tháng đang chọn
             let filteredBills = recentBills.filter(bill => {
                 if (!bill.date) return false;
                 let parts = bill.date.split('-');
@@ -816,6 +814,7 @@
 
             let sortedDemandArr = Object.entries(itemDemandDict).sort((a, b) => b[1] - a[1]);
 
+            // Đổ bảng phân tích nhu cầu món
             const demandContainer = document.getElementById("item-demand-container");
             demandContainer.innerHTML = "";
             if (sortedDemandArr.length === 0) {
@@ -841,6 +840,7 @@
                 }
             }
 
+            // Đổ danh sách hóa đơn chi tiết tháng
             const billsContainer = document.getElementById("all-month-bills-container");
             billsContainer.innerHTML = "";
             if (filteredBills.length === 0) {
@@ -870,9 +870,65 @@
                 });
             }
 
+            // =================================================================
+            // 🛠️ BỘ CỨU HỘ & GIẢI NÉN DỮ LIỆU LỊCH SỬ KHÔNG LO MẤT DATA CŨ 
+            // =================================================================
+            let flatRevenueHistory = {};
+            
+            // Bước 1: Quét cứu hộ định dạng thư mục cũ (do dấu gạch chéo tạo nhánh cây trên mây)
+            if (revenueHistory && typeof revenueHistory === 'object') {
+                Object.keys(revenueHistory).forEach(key1 => {
+                    let val1 = revenueHistory[key1];
+                    if (typeof val1 === 'object' && val1 !== null) {
+                        Object.keys(val1).forEach(key2 => {
+                            let val2 = val1[key2];
+                            if (typeof val2 === 'object' && val2 !== null) {
+                                Object.keys(val2).forEach(key3 => {
+                                    let val3 = val2[key3];
+                                    if (typeof val3 === 'number' || typeof val3 === 'string') {
+                                        let day = key1.padStart(2, '0');
+                                        let month = key2.padStart(2, '0');
+                                        let constructedDate = `${day}-${month}-${key3}`;
+                                        flatRevenueHistory[constructedDate] = parseFloat(val3) || 0;
+                                    }
+                                });
+                            }
+                        });
+                    } else if (typeof val1 === 'number' || typeof val1 === 'string') {
+                        let standardizedKey = key1.replace(/\//g, '-');
+                        flatRevenueHistory[standardizedKey] = parseFloat(val1) || 0;
+                    }
+                });
+            }
+
+            // Bước 2: Tự động gom nhóm tính tổng doanh thu & số đơn trực tiếp từ hóa đơn thực tế
+            let calculatedDailyRevenue = {};
+            let calculatedDailyOrders = {};
+            
+            filteredBills.forEach(bill => {
+                if (bill.date) {
+                    let standardizedDate = bill.date.replace(/\//g, '-');
+                    calculatedDailyRevenue[standardizedDate] = (calculatedDailyRevenue[standardizedDate] || 0) + (parseFloat(bill.total) || 0);
+                    calculatedDailyOrders[standardizedDate] = (calculatedDailyOrders[standardizedDate] || 0) + 1;
+                }
+            });
+
+            // Bước 3: Trộn dữ liệu cũ và dữ liệu mới dứt khoát
+            let finalDailyStats = {};
+            Object.keys(flatRevenueHistory).forEach(date => {
+                finalDailyStats[date] = { revenue: flatRevenueHistory[date], orders: 0 };
+            });
+            Object.keys(calculatedDailyRevenue).forEach(date => {
+                if (!finalDailyStats[date]) finalDailyStats[date] = { revenue: 0, orders: 0 };
+                finalDailyStats[date].revenue = calculatedDailyRevenue[date]; // Lấy số từ hóa đơn chuẩn xác thời gian thực
+                finalDailyStats[date].orders = calculatedDailyOrders[date];
+            });
+
+            // Bước 4: Đổ dữ liệu ra màn hình bảo mật
             const historyContainer = document.getElementById("history-container");
             historyContainer.innerHTML = "";
-            const sortedDates = Object.keys(revenueHistory).sort((a, b) => {
+            
+            const sortedDates = Object.keys(finalDailyStats).sort((a, b) => {
                 const pA = a.split('-'); const pB = b.split('-');
                 return new Date(pB[2], pB[1] - 1, pB[0]) - new Date(pA[2], pA[1] - 1, pA[0]);
             });
@@ -880,14 +936,19 @@
             let hasHistory = false;
             sortedDates.forEach(date => {
                 let parts = date.split('-');
-                if (`${parts[1]}-${parts[2]}` === targetMonthYear) {
+                if (parts.length === 3 && `${parts[1]}-${parts[2]}` === targetMonthYear) {
                     hasHistory = true;
-                    let dayBillsCount = filteredBills.filter(bill => bill.date === date).length;
-
+                    let stats = finalDailyStats[date];
                     const div = document.createElement("div"); div.className = "history-item";
+                    
+                    // Nếu là ngày cũ không có hóa đơn lưu vết, tạm ẩn text số đơn để không bị hiện (0 đơn) nhầm lẫn
+                    let orderTextHTML = (stats.orders > 0 || date === todayStr) 
+                        ? `<small style="color:#e63946; font-weight:bold; margin-left:6px;">(${stats.orders} đơn)</small>` 
+                        : '';
+
                     div.innerHTML = `
-                        <span>📅 Ngày <strong>${date.replace(/-/g, '/')}</strong> ${date === todayStr ? '<small style="color:var(--active-color)">(Hôm nay)</small>' : ''} <small style="color:#e63946; font-weight:bold; margin-left:6px;">(${dayBillsCount} đơn)</small></span>
-                        <span style="font-weight:bold; color:var(--primary-color);">${revenueHistory[date].toLocaleString('vi-VN')}đ</span>
+                        <span>📅 Ngày <strong>${date.replace(/-/g, '/')}</strong> ${date === todayStr ? '<small style="color:var(--active-color)">(Hôm nay)</small>' : ''}${orderTextHTML}</span>
+                        <span style="font-weight:bold; color:var(--primary-color);">${stats.revenue.toLocaleString('vi-VN')}đ</span>
                     `;
                     historyContainer.appendChild(div);
                 }
