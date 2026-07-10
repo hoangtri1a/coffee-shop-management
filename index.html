@@ -341,7 +341,6 @@
                         <label for="menu-select">Chọn món ăn/nước uống:</label>
                         <select id="menu-select"></select>
                         
-                        <!-- BỘ CHỌN NOTE ĐÁ / ĐƯỜNG CHO PHA CHẾ (MỚI THÊM) -->
                         <div class="fee-selector-grid" style="margin-top: 10px; margin-bottom: 2px;">
                             <div>
                                 <label style="font-size:0.85rem; font-weight:bold; color:#00b4d8;">❄️ Ghi chú Đá</label>
@@ -573,7 +572,6 @@
             
             let cloudTables = data.tables || {};
             tables = {};
-            // NÂNG CẤP: Chuyển dữ liệu vòng lặp tăng lên 28 bàn
             for (let i = 1; i <= 28; i++) {
                 tables[i] = { orderList: [] };
                 if (cloudTables[i] && cloudTables[i].orderList) {
@@ -661,11 +659,9 @@
             }
         }
 
-        // PHẦN HIỂN THỊ SƠ ĐỒ PHỤC VỤ (28 BÀN + MANG ĐI)
         function renderTables() {
             const container = document.getElementById("tables-container"); container.innerHTML = "";
             
-            // Vẽ 28 bàn (Có gắn nhãn Tầng 2 chuyên biệt cho Bàn 28)
             for (let i = 1; i <= 28; i++) {
                 const btn = document.createElement("button");
                 btn.className = "table-btn"; btn.id = `table-${i}`;
@@ -783,8 +779,6 @@
                     bill.orderList.forEach(item => {
                         totalItemsCount += item.qty;
                         if (item.isTakeAway) totalTakeawayCount += item.qty;
-                        
-                        // SỬA ĐỔI QUAN TRỌNG: CHỈ gom nhóm theo item.name gốc, lọc bỏ hoàn toàn chuỗi note đá/đường để lịch sử sạch sẽ
                         let key = item.name; 
                         itemDemandDict[key] = (itemDemandDict[key] || 0) + item.qty;
                     });
@@ -856,14 +850,21 @@
                 return new Date(pB[2], pB[1] - 1, pB[0]) - new Date(pA[2], pA[1] - 1, pA[0]);
             });
 
+            // NÂNG CẤP MỚI: Tự động đếm và hiển thị số lượng đơn hàng bán được của từng ngày cụ thể
             let hasHistory = false;
             sortedDates.forEach(date => {
                 let parts = date.split('-');
                 if (`${parts[1]}-${parts[2]}` === targetMonthYear) {
                     hasHistory = true;
+                    
+                    // Lọc đếm xem ngày này có bao nhiêu đơn hàng trong kho lưu trữ tháng
+                    let dayBillsCount = filteredBills.filter(bill => bill.date === date).length;
+
                     const div = document.createElement("div"); div.className = "history-item";
-                    div.innerHTML = `<span>📅 Ngày <strong>${date.replace(/-/g, '/')}</strong> ${date === todayStr ? '<small style="color:var(--active-color)">(Hôm nay)</small>' : ''}</span>
-                                     <span style="font-weight:bold; color:var(--primary-color);">${revenueHistory[date].toLocaleString('vi-VN')}đ</span>`;
+                    div.innerHTML = `
+                        <span>📅 Ngày <strong>${date.replace(/-/g, '/')}</strong> ${date === todayStr ? '<small style="color:var(--active-color)">(Hôm nay)</small>' : ''} <small style="color:#e63946; font-weight:bold; margin-left:6px;">(${dayBillsCount} đơn)</small></span>
+                        <span style="font-weight:bold; color:var(--primary-color);">${revenueHistory[date].toLocaleString('vi-VN')}đ</span>
+                    `;
                     historyContainer.appendChild(div);
                 }
             });
@@ -872,24 +873,7 @@
 
         function onMonthFilterChange() { isDemandExpanded = false; renderFilteredStats(); }
 
-        function updateRevenueDisplay() {
-            let todayBills = recentBills.filter(bill => bill.date === todayStr);
-            let cashRevenue = 0;
-            let bankRevenue = 0;
-            todayBills.forEach(b => {
-                if (b.paymentMethod === "chuyen_khoan") bankRevenue += b.total;
-                else cashRevenue += b.total;
-            });
-
-            document.getElementById("daily-revenue").textContent = (cashRevenue + bankRevenue).toLocaleString('vi-VN');
-            
-            if(document.getElementById("today-cash-revenue")){
-                document.getElementById("today-cash-revenue").textContent = cashRevenue.toLocaleString('vi-VN');
-                document.getElementById("today-bank-revenue").textContent = bankRevenue.toLocaleString('vi-VN') + "đ";
-                let parsedInitial = parseInt(initialCash) || 0;
-                document.getElementById("total-cash-in-drawer").textContent = (parsedInitial + cashRevenue).toLocaleString('vi-VN');
-            }
-        }
+        updateRevenueDisplay();
 
         function selectTable(tableId) {
             currentTableId = tableId;
@@ -910,7 +894,6 @@
             document.getElementById("order-discount-select").value = "0";
             document.getElementById("order-surcharge-select").value = "0";
             
-            // Đưa ghi chú ly nước về mặc định trống
             document.getElementById("item-ice-select").value = "";
             document.getElementById("item-sweet-select").value = "";
             
@@ -931,8 +914,6 @@
             currentOrder.forEach((item, index) => {
                 const itemTotal = item.price * item.qty; subtotal += itemTotal;
                 const div = document.createElement("div"); div.className = "order-item";
-                
-                // Hiển thị nhãn ghi chú pha chế nhỏ gọn màu xanh dương dưới tên món
                 let noteHTML = item.note ? `<br><small style="color:#0077b6; font-weight:bold;">📝 ${item.note}</small>` : '';
                 
                 div.innerHTML = `<div><strong>${item.name}${item.isTakeAway ? '<span class="badge-takeaway">Mang đi</span>' : ''}</strong>${noteHTML}<br><small style="color:#666">${item.price.toLocaleString('vi-VN')}đ</small></div>
@@ -962,24 +943,21 @@
 
         function toggleBankCheckbox(e) { if (e.target.tagName !== 'INPUT') { const cb = document.getElementById("payment-method-checkbox"); cb.checked = !cb.checked; } }
 
-        // HÀM GỌI MÓN: Thu thập dữ liệu đá ngọt và đóng gói vào mảng cục bộ bàn ghế
         function addItemToTable() {
             if (!currentTableId) return;
             const select = document.getElementById("menu-select"); const itemInfo = JSON.parse(select.value);
             const isTakeAway = (currentTableId === 'takeaway') ? true : false;
             
-            // Xử lý nén chuỗi ghi chú pha chế
             const iceOpt = document.getElementById("item-ice-select").value;
             const sweetOpt = document.getElementById("item-sweet-select").value;
             let noteParts = [];
             if (iceOpt) noteParts.push(iceOpt);
             if (sweetOpt) noteParts.push(sweetOpt);
-            let itemNote = noteParts.join(", "); // Ví dụ: "Ít đá, Ít ngọt"
+            let itemNote = noteParts.join(", "); 
 
             if (!tables[currentTableId].orderList) tables[currentTableId].orderList = [];
             const currentOrder = tables[currentTableId].orderList;
             
-            // Tìm kiếm phần tử trùng cả Tên, Hình thức mang đi và Ghi chú để cộng dồn số lượng
             const existingItem = currentOrder.find(i => i.id === itemInfo.id && (i.isTakeAway || false) === isTakeAway && (i.note || "") === itemNote);
             
             if (existingItem) { 
@@ -991,11 +969,10 @@
                     price: itemInfo.price, 
                     qty: 1, 
                     isTakeAway: isTakeAway,
-                    note: itemNote // Đóng gói lưu note riêng biệt
+                    note: itemNote 
                 }); 
             }
             
-            // Trả hai ô chọn ghi chú đá/ngọt về mặc định ban đầu
             document.getElementById("item-ice-select").value = "";
             document.getElementById("item-sweet-select").value = "";
             
