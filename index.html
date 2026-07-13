@@ -246,7 +246,6 @@
         .bill-details { font-size: 0.85rem; color: #555; padding-left: 5px; line-height: 1.4; }
         .btn-undo { background-color: var(--danger-color); color: white; border: none; padding: 5px 10px; font-size: 0.8rem; border-radius: 4px; cursor: pointer; font-weight: bold; }
 
-        /* Khung bộ lọc quản lý cấu trúc 2 cột mượt mà */
         .month-filter-box {
             display: grid;
             grid-template-columns: 1fr 1.2fr;
@@ -413,7 +412,7 @@
             <div style="font-size:0.95rem; line-height:1.7; margin-top:10px; border-top:1px dashed #ccc; padding-top:10px;">
                 • Doanh thu tiền mặt đã thu hôm nay: <span id="today-cash-revenue" style="font-weight:bold; color:var(--primary-color);">0</span>đ<br>
                 <div style="font-size:1.15rem; font-weight:bold; color:#2a9d8f; margin:8px 0; background:white; padding:8px; border-radius:5px; border:1px solid #e0e0e0;">
-                    ➡ TỔNG TIỀM MẶT THỰC TẾ TRONG KÉT: <span id="total-cash-in-drawer">0</span>đ
+                    ➡ TỔNG TIỀN MẶT THỰC TẾ TRONG KÉT: <span id="total-cash-in-drawer">0</span>đ
                 </div>
                 <div style="font-size:1rem; font-weight:bold; color:#0050b3; margin-top:8px; padding-left:2px;">
                     💳 Tiền thanh toán chuyển khoản: <span id="today-bank-revenue">0</span>đ
@@ -427,10 +426,8 @@
         </div>
     </div>
 
-    <!-- TAB 3: KHU VỰC QUẢN LÝ RIÊNG CỦA CHỦ QUÁN (ĐÃ NÂNG CẤP ĐỐI SOÁT THEO NGÀY CỤ THỂ) -->
+    <!-- TAB 3: KHU VỰC QUẢN LÝ RIÊNG CỦA CHỦ QUÁN -->
     <div id="tab-admin" class="tab-content">
-        
-        <!-- THAY ĐỔI LỚN: KHUNG BỘ LỌC ĐA NĂNG (CHỌN THÁNG HOẶC NGÀY) -->
         <div class="month-filter-box">
             <div>
                 <label style="font-weight:bold; font-size:0.8rem; color:var(--primary-color);">👁️ Chế độ xem:</label>
@@ -447,7 +444,6 @@
             </div>
         </div>
 
-        <!-- 3 THẺ CHỈ SỐ: Đổi nhãn tự động theo bộ lọc ngày/tháng -->
         <div class="month-summary-grid">
             <div class="summary-mini-card" style="color:var(--primary-color);">
                 <div id="admin-revenue-type-label">Doanh Thu</div>
@@ -495,6 +491,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        // THỰC ĐƠN ĐÃ ĐƯỢC BỔ SUNG NƯỚC ÉP ỔI VÀ THUỐC LÁ MÈO MỚI (BẢO TOÀN GIÁ CŨ)
         const menuData = [
             { category: "CÀ PHÊ", items: [
                 { id: "cf_den_phin", name: "Cafe Đen (Phin)", price: 13000 }, 
@@ -535,6 +532,7 @@
                 { id: "nuoc_ep_cam", name: "Nước Ép Cam", price: 22000 }, 
                 { id: "nuoc_ep_ca_rot", name: "Nước Ép Cà Rốt", price: 22000 },
                 { id: "nuoc_ep_thom", name: "Nước Ép Thơm", price: 22000 }, 
+                { id: "nuoc_ep_oi", name: "Nước Ép ổi", price: 22000 }, // MÓN MỚI
                 { id: "sinh_to_bo", name: "Sinh Tố Bơ", price: 27000 }, 
                 { id: "nuoc_chanh_tuoi_xi_muoi", name: "Nước Chanh Tươi Xí Muội", price: 20000 }
             ]},
@@ -545,6 +543,7 @@
             ]},
             { category: "ĂN VẶT & KHÁC", items: [
                 { id: "thuoc_la", name: "Thuốc lá", price: 25000 },
+                { id: "thuoc_la_meo", name: "Thuốc lá mèo", price: 30000 }, // MÓN MỚI
                 { id: "hat_dua_huong_duong", name: "Hạt dưa / Hướng dương", price: 13000 }
             ]}
         ];
@@ -760,7 +759,6 @@
             });
         }
 
-        // THAY ĐỔI LỚN: TỰ ĐỘNG PHÁT SINH DANH SÁCH LỌC THEO CẢ NGÀY HOẶC THÁNG
         function buildMonthDropdownOptions() {
             const select = document.getElementById("report-time-select");
             if (!select) return;
@@ -770,7 +768,6 @@
             
             let itemsSet = new Set();
             
-            // Bảo toàn ngày/tháng hiện tại luôn nằm trong phôi chọn
             const d = new Date();
             const curDayStr = `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
             const curMonthStr = `${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
@@ -801,7 +798,6 @@
                 else select.value = curMonthStr;
 
             } else {
-                // Chế độ lọc theo từng ngày cụ thể
                 label.textContent = "📅 Chọn Ngày Đối Soát:";
                 itemsSet.add(curDayStr);
                 recentBills.forEach(bill => {
@@ -834,20 +830,17 @@
             renderFilteredStats();
         }
 
-        // TỐI ƯU TOÀN DIỆN: ĐỔI NHÃN CHỮ VÀ BÓP CHẶT DỮ LIỆU KHI XEM THEO NGÀY HOẶC THÁNG
         function renderFilteredStats() {
             if (!isAdminAuthenticated) return;
             const viewMode = document.getElementById("report-view-mode").value;
             const targetTime = document.getElementById("report-time-select").value;
             if (!targetTime) return;
 
-            // Đổi tên nhãn chữ linh hoạt
             document.getElementById("admin-revenue-type-label").textContent = viewMode === "month" ? "Doanh Thu Tháng" : "Doanh Thu Ngày";
             document.getElementById("admin-items-type-label").textContent = viewMode === "month" ? "Tổng Số Món" : "Món Trong Ngày";
             document.getElementById("admin-takeaway-type-label").textContent = viewMode === "month" ? "Mua Mang Đi" : "Mang Đi Trong Ngày";
             document.getElementById("admin-bills-list-title").textContent = viewMode === "month" ? "Danh sách toàn bộ hóa đơn trong tháng" : "Danh sách hóa đơn chi tiết trong ngày";
 
-            // Lọc hóa đơn nước
             let filteredBills = recentBills.filter(bill => {
                 if (!bill.date) return false;
                 let parts = bill.date.split('-');
@@ -880,7 +873,6 @@
 
             let sortedDemandArr = Object.entries(itemDemandDict).sort((a, b) => b[1] - a[1]);
 
-            // Đổ bảng xếp hạng món nước
             const demandContainer = document.getElementById("item-demand-container");
             demandContainer.innerHTML = "";
             if (sortedDemandArr.length === 0) {
@@ -906,7 +898,6 @@
                 }
             }
 
-            // Đổ danh sách hóa đơn ra màn hình
             const billsContainer = document.getElementById("all-month-bills-container");
             billsContainer.innerHTML = "";
             if (filteredBills.length === 0) {
@@ -936,9 +927,8 @@
                 });
             }
 
-            // Đổ bảng lịch sử doanh thu từng ngày phục vụ phân tích
             let flatRevenueHistory = {};
-            if (revenueHistory && typeof revenueHistory === 'object') {
+            if (typeof revenueHistory === 'object' && revenueHistory !== null) {
                 Object.keys(revenueHistory).forEach(key1 => {
                     let val1 = revenueHistory[key1];
                     if (typeof val1 === 'object' && val1 !== null) {
@@ -996,7 +986,6 @@
             sortedDates.forEach(date => {
                 let parts = date.split('-');
                 if (parts.length === 3) {
-                    // Nếu xem theo tháng, hiện đủ các ngày của tháng đó. Nếu xem theo ngày, chỉ hiện đúng ngày đó.
                     let isMatch = viewMode === "month" ? `${parts[1]}-${parts[2]}` === targetTime : date === targetTime;
                     
                     if (isMatch) {
@@ -1187,7 +1176,6 @@
             }
         }
 
-        // PHÔI IN NÂNG CẤP: Tự thích ứng tiêu đề báo cáo Ngày hoặc Tháng linh hoạt
         function printFilteredReport() {
             const viewMode = document.getElementById("report-view-mode").value;
             const targetTime = document.getElementById("report-time-select").value;
@@ -1235,7 +1223,6 @@
                 `;
             }).join('');
 
-            // Chữ hiển thị động trên phiếu in nhiệt
             let reportTitle = viewMode === "month" ? "BÁO CÁO DOANH THU THÁNG" : "BÁO CÁO DOANH THU NGÀY";
             let timeLabel = viewMode === "month" ? `Tháng ${targetTime.replace('-', '/')}` : `Ngày ${targetTime.replace(/-/g, '/')}`;
 
