@@ -327,6 +327,7 @@
         <button id="nav-admin" class="tab-nav-btn" style="color:#d90429;" onclick="switchTab('admin')">🔒 QUẢN LÝ (CHỦ)</button>
     </div>
 
+    <!-- TAB 1: MÀN HÌNH BÁN HÀNG CHÍNH -->
     <div id="tab-pos" class="tab-content active-tab-view">
         <div class="main-layout">
             <div class="tables-section">
@@ -400,6 +401,7 @@
         </div>
     </div>
 
+    <!-- TAB 2: KHU VỰC KẾ TOÁN THU NGÂN -->
     <div id="tab-today-bills" class="tab-content">
         <div class="card-view" style="background:#f0f5ff; border-left:5px solid #1890ff; padding:15px; border-radius:8px;">
             <h4 style="color:#0050b3; margin-bottom:12px; font-size:1.05rem;">🎛️ Báo Cáo Tiền Mặt & Két Tiền Ca Trực</h4>
@@ -424,6 +426,7 @@
         </div>
     </div>
 
+    <!-- TAB 3: KHU VỰC QUẢN LÝ RIÊNG CỦA CHỦ QUÁN -->
     <div id="tab-admin" class="tab-content">
         <div class="month-filter-box">
             <div>
@@ -436,7 +439,8 @@
             <div>
                 <label id="filter-select-label" style="font-weight:bold; font-size:0.8rem; color:var(--primary-color);">📅 Chọn Thời Gian:</label>
                 <select id="report-time-select" onchange="renderFilteredStats()">
-                    </select>
+                    <!-- Dữ liệu tháng/ngày nạp động tại đây -->
+                </select>
             </div>
         </div>
 
@@ -487,7 +491,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // DANH MỤC THỰC ĐƠN MỚI: Bổ sung Sữa chua hộp và tách rời Điếu thuốc lá
+        // DANH MỤC MENU MỚI: ĐÃ BỔ SUNG 3 NƯỚC GIẢI KHÁT VÀ SỬA TÊN THUỐC LÁ THEO YÊU CẦU
         const menuData = [
             { category: "CÀ PHÊ", items: [
                 { id: "cf_den_phin", name: "Cafe Đen (Phin)", price: 13000 }, 
@@ -510,14 +514,17 @@
                 { id: "sua_chua_dau", name: "Sữa Chua Dâu", price: 25000 },
                 { id: "sua_chua_viet_quat", name: "Sữa Chua Việt Quất", price: 25000 }, 
                 { id: "sua_chua_dao", name: "Sữa Chua Đào", price: 25000 },
-                { id: "sua_chua_hop", name: "Sữa chua hộp", price: 13000 } // THÊM MỚI
+                { id: "sua_chua_hop", name: "Sữa chua hộp", price: 13000 }
             ]},
             { category: "NƯỚC GIẢI KHÁT", items: [
                 { id: "khoang", name: "Khoáng", price: 13000 }, 
                 { id: "khoang_sua", name: "Khoáng Sữa", price: 15000 },
                 { id: "sting_vang", name: "Sting Vàng", price: 15000 }, 
                 { id: "sting_dau", name: "Sting Dâu", price: 16000 }, 
-                { id: "bo_huc", name: "Bò Húc", price: 22000 }
+                { id: "bo_huc", name: "Bò Húc", price: 22000 },
+                { id: "coca_cola", name: "Coca Cola", price: 16000 }, // THÊM MỚI
+                { id: "tra_xanh_khong_do", name: "Trà xanh không độ", price: 16000 }, // THÊM MỚI
+                { id: "revive", name: "Revive", price: 15000 } // THÊM MỚI
             ]},
             { category: "TRÀ TRÁI CÂY", items: [
                 { id: "tra_chanh_dau", name: "Trà Chanh Dâu", price: 25000 }, 
@@ -540,9 +547,8 @@
             ]},
             { category: "ĂN VẶT & KHÁC", items: [
                 { id: "thuoc_la", name: "Thuốc lá mèo", price: 25000 },
-                { id: "thuoc_la_meo_2_dieu", name: "Thuốc lá mèo (2 điếu)", price: 3000 }, // THÊM MỚI
                 { id: "thuoc_la_meo", name: "Thuốc lá ngựa", price: 30000 },
-                { id: "thuoc_la_ngua_2_dieu", name: "Thuốc lá ngựa (2 điếu)", price: 5000 }, // THÊM MỚI
+                { id: "thuoc_la_ngua_2_dieu", name: "Thuốc lá ngựa (2 điếu)", price: 5000 },
                 { id: "hat_dua_huong_duong", name: "Hạt dưa / Hướng dương", price: 13000 }
             ]}
         ];
