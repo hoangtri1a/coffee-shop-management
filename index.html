@@ -327,7 +327,6 @@
         <button id="nav-admin" class="tab-nav-btn" style="color:#d90429;" onclick="switchTab('admin')">🔒 QUẢN LÝ (CHỦ)</button>
     </div>
 
-    <!-- TAB 1: MÀN HÌNH BÁN HÀNG CHÍNH -->
     <div id="tab-pos" class="tab-content active-tab-view">
         <div class="main-layout">
             <div class="tables-section">
@@ -401,7 +400,6 @@
         </div>
     </div>
 
-    <!-- TAB 2: KHU VỰC KẾ TOÁN THU NGÂN -->
     <div id="tab-today-bills" class="tab-content">
         <div class="card-view" style="background:#f0f5ff; border-left:5px solid #1890ff; padding:15px; border-radius:8px;">
             <h4 style="color:#0050b3; margin-bottom:12px; font-size:1.05rem;">🎛️ Báo Cáo Tiền Mặt & Két Tiền Ca Trực</h4>
@@ -426,7 +424,6 @@
         </div>
     </div>
 
-    <!-- TAB 3: KHU VỰC QUẢN LÝ RIÊNG CỦA CHỦ QUÁN -->
     <div id="tab-admin" class="tab-content">
         <div class="month-filter-box">
             <div>
@@ -439,8 +436,7 @@
             <div>
                 <label id="filter-select-label" style="font-weight:bold; font-size:0.8rem; color:var(--primary-color);">📅 Chọn Thời Gian:</label>
                 <select id="report-time-select" onchange="renderFilteredStats()">
-                    <!-- Dữ liệu tháng/ngày nạp động tại đây -->
-                </select>
+                    </select>
             </div>
         </div>
 
@@ -491,6 +487,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        // DANH MỤC THỰC ĐƠN MỚI: Bổ sung Sữa chua hộp và tách rời Điếu thuốc lá
         const menuData = [
             { category: "CÀ PHÊ", items: [
                 { id: "cf_den_phin", name: "Cafe Đen (Phin)", price: 13000 }, 
@@ -512,7 +509,8 @@
                 { id: "sua_chua_da", name: "Sữa Chua Đá", price: 20000 }, 
                 { id: "sua_chua_dau", name: "Sữa Chua Dâu", price: 25000 },
                 { id: "sua_chua_viet_quat", name: "Sữa Chua Việt Quất", price: 25000 }, 
-                { id: "sua_chua_dao", name: "Sữa Chua Đào", price: 25000 }
+                { id: "sua_chua_dao", name: "Sữa Chua Đào", price: 25000 },
+                { id: "sua_chua_hop", name: "Sữa chua hộp", price: 13000 } // THÊM MỚI
             ]},
             { category: "NƯỚC GIẢI KHÁT", items: [
                 { id: "khoang", name: "Khoáng", price: 13000 }, 
@@ -541,8 +539,10 @@
                 { id: "da_xay_dau", name: "Đá Xay Dâu", price: 30000 }
             ]},
             { category: "ĂN VẶT & KHÁC", items: [
-                { id: "thuoc_la", name: "Thuốc lá mèo", price: 25000 }, // ĐÃ ĐỔI TÊN MÓN
-                { id: "thuoc_la_meo", name: "Thuốc lá ngựa", price: 30000 }, // ĐÃ ĐỔI TÊN MÓN
+                { id: "thuoc_la", name: "Thuốc lá mèo", price: 25000 },
+                { id: "thuoc_la_meo_2_dieu", name: "Thuốc lá mèo (2 điếu)", price: 3000 }, // THÊM MỚI
+                { id: "thuoc_la_meo", name: "Thuốc lá ngựa", price: 30000 },
+                { id: "thuoc_la_ngua_2_dieu", name: "Thuốc lá ngựa (2 điếu)", price: 5000 }, // THÊM MỚI
                 { id: "hat_dua_huong_duong", name: "Hạt dưa / Hướng dương", price: 13000 }
             ]}
         ];
@@ -1158,7 +1158,7 @@
             const bill = recentBills[billIndex];
             
             let labelTable = (bill.tableId === 'takeaway') ? "Đơn mang đi" : (bill.tableId === 28 ? "Bàn 28 (Tầng 2)" : `Bàn ${bill.tableId}`);
-            if (confirm(`HỦY hóa đơn nhẩn lẫn này của ${labelTable}?`)) {
+            if (confirm(`HỦY hóa đơn nhầm lẫn này của ${labelTable}?`)) {
                 if (revenueHistory[bill.date]) { revenueHistory[bill.date] -= bill.total; if (revenueHistory[bill.date] < 0) revenueHistory[bill.date] = 0; }
                 
                 if (!tables[bill.tableId].orderList) tables[bill.tableId].orderList = [];
@@ -1265,4 +1265,3 @@
     </script>
 </body>
 </html>
-
