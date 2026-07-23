@@ -433,13 +433,14 @@
                 <label style="font-weight:bold; font-size:0.8rem; color:var(--primary-color);">👁️ Chế độ xem:</label>
                 <select id="report-view-mode" onchange="onViewModeChange()">
                     <option value="month" selected>Xem theo Tháng</option>
+                    <option value="week">Xem theo Tuần</option>
                     <option value="day">Xem theo Ngày</option>
                 </select>
             </div>
             <div>
                 <label id="filter-select-label" style="font-weight:bold; font-size:0.8rem; color:var(--primary-color);">📅 Chọn Thời Gian:</label>
                 <select id="report-time-select" onchange="renderFilteredStats()">
-                    <!-- Dữ liệu tháng/ngày nạp động tại đây -->
+                    <!-- Dữ liệu thời gian nạp động tại đây -->
                 </select>
             </div>
         </div>
@@ -491,7 +492,6 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // DANH MỤC MENU MỚI: ĐÃ BỔ SUNG 3 NƯỚC GIẢI KHÁT VÀ SỬA TÊN THUỐC LÁ THEO YÊU CẦU
         const menuData = [
             { category: "CÀ PHÊ", items: [
                 { id: "cf_den_phin", name: "Cafe Đen (Phin)", price: 13000 }, 
@@ -522,9 +522,9 @@
                 { id: "sting_vang", name: "Sting Vàng", price: 15000 }, 
                 { id: "sting_dau", name: "Sting Dâu", price: 16000 }, 
                 { id: "bo_huc", name: "Bò Húc", price: 22000 },
-                { id: "coca_cola", name: "Coca Cola", price: 16000 }, // THÊM MỚI
-                { id: "tra_xanh_khong_do", name: "Trà xanh không độ", price: 16000 }, // THÊM MỚI
-                { id: "revive", name: "Revive", price: 15000 } // THÊM MỚI
+                { id: "coca_cola", name: "Coca Cola", price: 16000 }, 
+                { id: "tra_xanh_khong_do", name: "Trà xanh không độ", price: 16000 }, 
+                { id: "revive", name: "Revive", price: 15000 }
             ]},
             { category: "TRÀ TRÁI CÂY", items: [
                 { id: "tra_chanh_dau", name: "Trà Chanh Dâu", price: 25000 }, 
@@ -566,6 +566,35 @@
             return `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
         }
         const todayStr = getTodayString();
+
+        // CÁC HÀM XỬ LÝ LỌC THEO TUẦN (THỨ 2 ĐẾN CHỦ NHẬT)
+        function getMondayDate(dateStr) {
+            if (!dateStr) return null;
+            let parts = dateStr.split('-');
+            if (parts.length !== 3) return null;
+            let d = new Date(parts[2], parts[1] - 1, parts[0]);
+            let day = d.getDay();
+            let diff = d.getDate() - day + (day === 0 ? -6 : 1);
+            return new Date(d.setDate(diff));
+        }
+
+        function getMondayStr(dateStr) {
+            let mon = getMondayDate(dateStr);
+            if (!mon) return "";
+            return `${String(mon.getDate()).padStart(2, '0')}-${String(mon.getMonth() + 1).padStart(2, '0')}-${mon.getFullYear()}`;
+        }
+
+        function getWeekLabel(monStr) {
+            let parts = monStr.split('-');
+            if (parts.length !== 3) return monStr;
+            let mon = new Date(parts[2], parts[1] - 1, parts[0]);
+            let sun = new Date(mon);
+            sun.setDate(mon.getDate() + 6);
+            
+            let mStr = `${String(mon.getDate()).padStart(2, '0')}/${String(mon.getMonth() + 1).padStart(2, '0')}`;
+            let sStr = `${String(sun.getDate()).padStart(2, '0')}/${String(sun.getMonth() + 1).padStart(2, '0')}/${sun.getFullYear()}`;
+            return `Tuần (${mStr} - ${sStr})`;
+        }
 
         function initMenuSelect() {
             const select = document.getElementById("menu-select"); 
@@ -775,6 +804,7 @@
             const d = new Date();
             const curDayStr = `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
             const curMonthStr = `${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
+            const curMonStr = getMondayStr(curDayStr);
 
             if (mode === "month") {
                 label.textContent = "📅 Chọn Tháng Đối Soát:";
@@ -800,6 +830,37 @@
 
                 if (currentSelected && sortedMonths.includes(currentSelected)) select.value = currentSelected;
                 else select.value = curMonthStr;
+
+            } else if (mode === "week") {
+                label.textContent = "📅 Chọn Tuần Đối Soát:";
+                if (curMonStr) itemsSet.add(curMonStr);
+                recentBills.forEach(bill => {
+                    if (bill.date) {
+                        let mStr = getMondayStr(bill.date.replace(/\//g, '-'));
+                        if (mStr) itemsSet.add(mStr);
+                    }
+                });
+                Object.keys(revenueHistory).forEach(k => {
+                    if (k.includes('-') && k.split('-').length === 3) {
+                        let mStr = getMondayStr(k);
+                        if (mStr) itemsSet.add(mStr);
+                    }
+                });
+
+                let sortedWeeks = Array.from(itemsSet).sort((a, b) => {
+                    const pA = a.split('-'); const pB = b.split('-');
+                    return new Date(pB[2], pB[1] - 1, pB[0]) - new Date(pA[2], pA[1] - 1, pA[0]);
+                });
+
+                select.innerHTML = "";
+                sortedWeeks.forEach(wMonStr => {
+                    const opt = document.createElement("option");
+                    opt.value = wMonStr; opt.textContent = getWeekLabel(wMonStr);
+                    select.appendChild(opt);
+                });
+
+                if (currentSelected && sortedWeeks.includes(currentSelected)) select.value = currentSelected;
+                else select.value = curMonStr;
 
             } else {
                 label.textContent = "📅 Chọn Ngày Đối Soát:";
@@ -840,16 +901,30 @@
             const targetTime = document.getElementById("report-time-select").value;
             if (!targetTime) return;
 
-            document.getElementById("admin-revenue-type-label").textContent = viewMode === "month" ? "Doanh Thu Tháng" : "Doanh Thu Ngày";
-            document.getElementById("admin-items-type-label").textContent = viewMode === "month" ? "Tổng Số Món" : "Món Trong Ngày";
-            document.getElementById("admin-takeaway-type-label").textContent = viewMode === "month" ? "Mua Mang Đi" : "Mang Đi Trong Ngày";
-            document.getElementById("admin-bills-list-title").textContent = viewMode === "month" ? "Danh sách toàn bộ hóa đơn trong tháng" : "Danh sách hóa đơn chi tiết trong ngày";
+            if (viewMode === "month") {
+                document.getElementById("admin-revenue-type-label").textContent = "Doanh Thu Tháng";
+                document.getElementById("admin-items-type-label").textContent = "Tổng Số Món";
+                document.getElementById("admin-takeaway-type-label").textContent = "Mua Mang Đi";
+                document.getElementById("admin-bills-list-title").textContent = "Danh sách toàn bộ hóa đơn trong tháng";
+            } else if (viewMode === "week") {
+                document.getElementById("admin-revenue-type-label").textContent = "Doanh Thu Tuần";
+                document.getElementById("admin-items-type-label").textContent = "Món Trong Tuần";
+                document.getElementById("admin-takeaway-type-label").textContent = "Mang Đi Trong Tuần";
+                document.getElementById("admin-bills-list-title").textContent = "Danh sách hóa đơn chi tiết trong tuần";
+            } else {
+                document.getElementById("admin-revenue-type-label").textContent = "Doanh Thu Ngày";
+                document.getElementById("admin-items-type-label").textContent = "Món Trong Ngày";
+                document.getElementById("admin-takeaway-type-label").textContent = "Mang Đi Trong Ngày";
+                document.getElementById("admin-bills-list-title").textContent = "Danh sách hóa đơn chi tiết trong ngày";
+            }
 
             let filteredBills = recentBills.filter(bill => {
                 if (!bill.date) return false;
                 let parts = bill.date.split('-');
                 if (viewMode === "month") {
                     return `${parts[1]}-${parts[2]}` === targetTime;
+                } else if (viewMode === "week") {
+                    return getMondayStr(bill.date.replace(/\//g, '-')) === targetTime;
                 } else {
                     return bill.date === targetTime;
                 }
@@ -990,7 +1065,14 @@
             sortedDates.forEach(date => {
                 let parts = date.split('-');
                 if (parts.length === 3) {
-                    let isMatch = viewMode === "month" ? `${parts[1]}-${parts[2]}` === targetTime : date === targetTime;
+                    let isMatch = false;
+                    if (viewMode === "month") {
+                        isMatch = `${parts[1]}-${parts[2]}` === targetTime;
+                    } else if (viewMode === "week") {
+                        isMatch = getMondayStr(date) === targetTime;
+                    } else {
+                        isMatch = date === targetTime;
+                    }
                     
                     if (isMatch) {
                         hasHistory = true;
@@ -1188,7 +1270,9 @@
             let filteredBills = recentBills.filter(bill => {
                 if (!bill.date) return false;
                 let parts = bill.date.split('-');
-                return viewMode === "month" ? `${parts[1]}-${parts[2]}` === targetTime : bill.date === targetTime;
+                if (viewMode === "month") return `${parts[1]}-${parts[2]}` === targetTime;
+                if (viewMode === "week") return getMondayStr(bill.date.replace(/\//g, '-')) === targetTime;
+                return bill.date === targetTime;
             });
 
             if (filteredBills.length === 0) { alert("Khoảng thời gian này chưa có dữ liệu để xuất!"); return; }
@@ -1227,8 +1311,15 @@
                 `;
             }).join('');
 
-            let reportTitle = viewMode === "month" ? "BÁO CÁO DOANH THU THÁNG" : "BÁO CÁO DOANH THU NGÀY";
-            let timeLabel = viewMode === "month" ? `Tháng ${targetTime.replace('-', '/')} ` : `Ngày ${targetTime.replace(/-/g, '/')}`;
+            let reportTitle = "BÁO CÁO DOANH THU NGÀY";
+            let timeLabel = `Ngày ${targetTime.replace(/-/g, '/')}`;
+            if (viewMode === "month") {
+                reportTitle = "BÁO CÁO DOANH THU THÁNG";
+                timeLabel = `Tháng ${targetTime.replace('-', '/')}`;
+            } else if (viewMode === "week") {
+                reportTitle = "BÁO CÁO DOANH THU TUẦN";
+                timeLabel = getWeekLabel(targetTime);
+            }
 
             reportWindow.document.write(`
                 <html>
