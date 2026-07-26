@@ -162,7 +162,7 @@
         }
         .fee-selector-grid select { padding: 10px; margin-top: 2px; font-size: 0.95rem; }
 
-        select, input[type="text"], input[type="number"], input[type="date"], input[type="month"], .btn-action {
+        select, input[type="text"], input[type="number"], .btn-action {
             width: 100%;
             padding: 12px;
             margin-top: 5px;
@@ -443,7 +443,7 @@
             </div>
             <div>
                 <label id="filter-select-label" style="font-weight:bold; font-size:0.8rem; color:var(--primary-color);">📅 Chọn Thời Gian:</label>
-                <select id="report-time-select" onchange="renderFilteredStats()">
+                <select id="report-time-select" onchange="onReportTimeSelectChange()">
                     <!-- Dữ liệu thời gian nạp động -->
                 </select>
             </div>
@@ -482,30 +482,30 @@
 
         <button class="btn-print-report" onclick="printFilteredReport()">🖨️ XUẤT BÁO CÁO THỜI GIAN ĐANG CHỌN</button>
 
-        <!-- KHU VỰC SỔ GHI NHẬN CHI PHÍ VẬN HÀNH (HỖ TRỢ NHẬP THEO TUẦN / THÁNG / NGÀY) -->
+        <!-- KHU VỰC SỔ GHI NHẬN CHI PHÍ VẬN HÀNH (ĐỒNG BỘ TRỰC TIẾP TỪ NÚT LỌC Ở TRÊN) -->
         <div class="card-view" style="border-left: 4px solid #d90429;">
             <h3>💸 Sổ Ghi Nhận Chi Phí Vận Hành (Đá, Lương, Điện...)</h3>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:10px;">
-                <input type="text" id="expense-title-input" placeholder="Mô tả (vd: Lương tuần A, Tiền đá...)">
+                <input type="text" id="expense-title-input" placeholder="Mô tả (vd: Lương em A, Tiền đá...)">
                 <input type="number" id="expense-amount-input" placeholder="Số tiền (đ)">
             </div>
             <div style="display:grid; grid-template-columns: 1fr 1.2fr; gap:8px; margin-top:8px;">
                 <div>
                     <label style="font-size:0.75rem; font-weight:bold; color:#555;">Chu kỳ chi phí:</label>
-                    <select id="expense-period-type" onchange="onExpensePeriodTypeChange()" style="margin-top:2px;">
+                    <select id="expense-period-type" onchange="buildExpenseDropdownOptions()" style="margin-top:2px;">
                         <option value="week" selected>Theo Tuần</option>
                         <option value="month">Theo Tháng</option>
                         <option value="day">Theo Ngày</option>
                     </select>
                 </div>
                 <div>
-                    <label id="expense-date-label" style="font-size:0.75rem; font-weight:bold; color:#555;">Chọn ngày trong tuần:</label>
-                    <div id="expense-date-input-container">
-                        <input type="date" id="expense-date-input" style="margin-top:2px;">
-                    </div>
+                    <label style="font-size:0.75rem; font-weight:bold; color:#555;">Chọn Kỳ Chi Trả:</label>
+                    <select id="expense-target-select" style="margin-top:2px;">
+                        <!-- Nạp động đồng bộ dữ liệu tuần/tháng từ danh sách trên -->
+                    </select>
                 </div>
             </div>
-            <button class="btn-action" style="margin-top:10px; background:#d90429; color:white; padding:10px;" onclick="addExpense()">+ Ghi Nhận Chi Phí</button>
+            <button class="btn-action" style="margin-top:10px; background:#d90429; color:white; padding:10px;" onclick="addExpense()">+ Ghi Nhận Chi Phí Vận Hành</button>
             <div class="scroll-list" id="expenses-list-container" style="max-height:220px; margin-top:12px;"></div>
         </div>
 
@@ -787,7 +787,7 @@
             } else {
                 document.getElementById('tab-admin').classList.add('active-tab-view');
                 document.getElementById('nav-admin').classList.add('active-tab-nav');
-                onExpensePeriodTypeChange();
+                buildMonthDropdownOptions();
                 renderFilteredStats();
                 renderExpensesList();
                 renderCostEditPanel();
@@ -965,16 +965,126 @@
                 if (currentSelected && sortedDays.includes(currentSelected)) select.value = currentSelected;
                 else select.value = curDayStr;
             }
+
+            buildExpenseDropdownOptions();
+        }
+
+        // HÀM NẠP ĐỒNG BỘ CÁC KỲ TUẦN/THÁNG SANG Ô NHẬP CHI PHÍ VẬN HÀNH
+        function buildExpenseDropdownOptions() {
+            const select = document.getElementById("expense-target-select");
+            const pType = document.getElementById("expense-period-type").value;
+            if (!select) return;
+
+            let itemsSet = new Set();
+            const d = new Date();
+            const curDayStr = `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
+            const curMonthStr = `${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
+            const curMonStr = getMondayStr(curDayStr);
+
+            select.innerHTML = "";
+
+            if (pType === "month") {
+                itemsSet.add(curMonthStr);
+                recentBills.forEach(bill => {
+                    if (bill.date) {
+                        let parts = bill.date.split('-');
+                        if (parts.length === 3) itemsSet.add(`${parts[1]}-${parts[2]}`);
+                    }
+                });
+                for (let i = 0; i < 6; i++) {
+                    let tempD = new Date(d.getFullYear(), d.getMonth() - i, 1);
+                    itemsSet.add(`${String(tempD.getMonth() + 1).padStart(2, '0')}-${tempD.getFullYear()}`);
+                }
+
+                let sortedMonths = Array.from(itemsSet).sort((a, b) => {
+                    let pA = a.split('-'); let pB = b.split('-');
+                    return new Date(pB[1], pB[0]-1) - new Date(pA[1], pA[0]-1);
+                });
+
+                sortedMonths.forEach(m => {
+                    const opt = document.createElement("option");
+                    opt.value = `01-${m}`;
+                    opt.textContent = `Tháng ${m.replace('-', '/')}`;
+                    select.appendChild(opt);
+                });
+
+                const reportMode = document.getElementById("report-view-mode").value;
+                const reportTime = document.getElementById("report-time-select").value;
+                if (reportMode === "month" && reportTime) select.value = `01-${reportTime}`;
+
+            } else if (pType === "week") {
+                if (curMonStr) itemsSet.add(curMonStr);
+                recentBills.forEach(bill => {
+                    if (bill.date) {
+                        let mStr = getMondayStr(bill.date.replace(/\//g, '-'));
+                        if (mStr) itemsSet.add(mStr);
+                    }
+                });
+                for (let i = 0; i < 8; i++) {
+                    let tempD = new Date();
+                    tempD.setDate(tempD.getDate() - (i * 7));
+                    let mStr = getMondayStr(`${String(tempD.getDate()).padStart(2, '0')}-${String(tempD.getMonth() + 1).padStart(2, '0')}-${tempD.getFullYear()}`);
+                    if (mStr) itemsSet.add(mStr);
+                }
+
+                let sortedWeeks = Array.from(itemsSet).sort((a, b) => {
+                    const pA = a.split('-'); const pB = b.split('-');
+                    return new Date(pB[2], pB[1] - 1, pB[0]) - new Date(pA[2], pA[1] - 1, pA[0]);
+                });
+
+                sortedWeeks.forEach(wMonStr => {
+                    const opt = document.createElement("option");
+                    opt.value = wMonStr;
+                    opt.textContent = `Tuần (${getWeekLabel(wMonStr)})`;
+                    select.appendChild(opt);
+                });
+
+                const reportMode = document.getElementById("report-view-mode").value;
+                const reportTime = document.getElementById("report-time-select").value;
+                if (reportMode === "week" && reportTime) select.value = reportTime;
+
+            } else { 
+                itemsSet.add(curDayStr);
+                recentBills.forEach(bill => {
+                    if (bill.date) itemsSet.add(bill.date.replace(/\//g, '-'));
+                });
+
+                let sortedDays = Array.from(itemsSet).sort((a, b) => {
+                    const pA = a.split('-'); const pB = b.split('-');
+                    return new Date(pB[2], pB[1] - 1, pB[0]) - new Date(pA[2], pA[1] - 1, pA[0]);
+                });
+
+                sortedDays.forEach(day => {
+                    const opt = document.createElement("option");
+                    opt.value = day;
+                    opt.textContent = `Ngày ${day.replace(/-/g, '/')}`;
+                    select.appendChild(opt);
+                });
+
+                const reportMode = document.getElementById("report-view-mode").value;
+                const reportTime = document.getElementById("report-time-select").value;
+                if (reportMode === "day" && reportTime) select.value = reportTime;
+            }
         }
 
         function onViewModeChange() {
             isDemandExpanded = false;
+            let reportMode = document.getElementById("report-view-mode").value;
+            let pTypeSelect = document.getElementById("expense-period-type");
+            if (pTypeSelect) pTypeSelect.value = reportMode;
+
             buildMonthDropdownOptions();
             renderFilteredStats();
             renderExpensesList();
         }
 
-        // CHỨC NĂNG CỐT LÕI: TÍNH TOÁN DOANH THU, COGS, CHI PHÍ VẬN HÀNH & LỢI NHUẬN RÒNG LỜI / LỖ
+        function onReportTimeSelectChange() {
+            renderFilteredStats();
+            renderExpensesList();
+            buildExpenseDropdownOptions();
+        }
+
+        // TÍNH TOÁN DOANH THU, COGS, CHI PHÍ VẬN HÀNH & LỢI NHUẬN RÒNG
         function renderFilteredStats() {
             if (!isAdminAuthenticated) return;
             const viewMode = document.getElementById("report-view-mode").value;
@@ -1198,73 +1308,21 @@
             if (!hasHistory) historyContainer.innerHTML = `<div style="color:#aaa; text-align:center;">Chưa có lịch sử doanh thu</div>`;
         }
 
-        // HÀM XỬ LÝ SỔ CHI PHÍ VẬN HÀNH (HỖ TRỢ TUẦN / THÁNG / NGÀY)
-        function onExpensePeriodTypeChange() {
-            const pTypeSelect = document.getElementById("expense-period-type");
-            if (!pTypeSelect) return;
-            const pType = pTypeSelect.value;
-            const label = document.getElementById("expense-date-label");
-            const container = document.getElementById("expense-date-input-container");
-
-            const d = new Date();
-            const ymd = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-            const ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-
-            if (pType === "month") {
-                label.textContent = "Chọn tháng phát sinh:";
-                container.innerHTML = `<input type="month" id="expense-month-input" style="margin-top:2px;" value="${ym}">`;
-            } else if (pType === "week") {
-                label.textContent = "Chọn 1 ngày trong tuần:";
-                container.innerHTML = `<input type="date" id="expense-date-input" style="margin-top:2px;" value="${ymd}">`;
-            } else {
-                label.textContent = "Chọn ngày chi trả:";
-                container.innerHTML = `<input type="date" id="expense-date-input" style="margin-top:2px;" value="${ymd}">`;
-            }
-        }
-
+        // HÀM XỬ LÝ SỔ CHI PHÍ VẬN HÀNH (ĐỒNG BỘ ĐỘNG THEO DANH SÁCH BỘ LỌC)
         function addExpense() {
             const titleInput = document.getElementById("expense-title-input");
             const amountInput = document.getElementById("expense-amount-input");
             const pTypeSelect = document.getElementById("expense-period-type");
+            const targetSelect = document.getElementById("expense-target-select");
 
             let title = titleInput.value.trim();
             let amount = parseFloat(amountInput.value) || 0;
             let periodType = pTypeSelect ? pTypeSelect.value : "week";
+            let dateStr = targetSelect ? targetSelect.value : todayStr;
 
             if (!title || amount <= 0) {
                 alert("Vui lòng nhập mô tả và số tiền hợp lệ!");
                 return;
-            }
-
-            let dateStr = todayStr;
-
-            if (periodType === "month") {
-                const monthInput = document.getElementById("expense-month-input");
-                let rawMonth = monthInput ? monthInput.value : "";
-                if (rawMonth) {
-                    let p = rawMonth.split('-');
-                    if (p.length === 2) dateStr = `01-${p[1]}-${p[0]}`;
-                }
-            } else if (periodType === "week") {
-                const dateInput = document.getElementById("expense-date-input");
-                let rawDate = dateInput ? dateInput.value : "";
-                if (rawDate) {
-                    let p = rawDate.split('-');
-                    if (p.length === 3) {
-                        let std = `${p[2]}-${p[1]}-${p[0]}`;
-                        let mon = getMondayStr(std);
-                        if (mon) dateStr = mon;
-                    }
-                } else {
-                    dateStr = getMondayStr(todayStr);
-                }
-            } else {
-                const dateInput = document.getElementById("expense-date-input");
-                let rawDate = dateInput ? dateInput.value : "";
-                if (rawDate) {
-                    let p = rawDate.split('-');
-                    if (p.length === 3) dateStr = `${p[2]}-${p[1]}-${p[0]}`;
-                }
             }
 
             expenses.unshift({
