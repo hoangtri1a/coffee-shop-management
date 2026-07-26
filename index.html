@@ -162,13 +162,13 @@
         }
         .fee-selector-grid select { padding: 10px; margin-top: 2px; font-size: 0.95rem; }
 
-        select, .btn-action {
+        select, input[type="text"], input[type="number"], input[type="date"], .btn-action {
             width: 100%;
-            padding: 14px;
+            padding: 12px;
             margin-top: 5px;
             border-radius: 6px;
             border: 1px solid #ccc;
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: bold;
             background-color: #fff;
         }
@@ -259,21 +259,24 @@
         }
         .month-filter-box select { margin: 0; padding: 10px; font-size: 0.9rem; }
 
-        .month-summary-grid {
+        /* GRID THỐNG KÊ LỜI LỖ QUẢN LÝ (4 Ô MỚI) */
+        .profit-summary-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 6px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
             margin-bottom: 15px;
         }
-        .summary-mini-card {
-            background: var(--secondary-color);
-            padding: 10px 4px;
-            border-radius: 6px;
+        .profit-mini-card {
+            background: #fff;
+            padding: 12px 8px;
+            border-radius: 8px;
             text-align: center;
             font-weight: bold;
-            font-size: 0.8rem;
+            font-size: 0.82rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 1px solid #eee;
         }
-        .summary-mini-card span { display: block; font-size: 1.1rem; margin-top: 4px; }
+        .profit-mini-card span { display: block; font-size: 1.15rem; margin-top: 4px; }
 
         .btn-print-report {
             background-color: #2b2d42;
@@ -305,6 +308,7 @@
             .main-layout { grid-template-columns: 1fr 1fr; }
             .tables-grid { grid-template-columns: repeat(6, 1fr); }
             .tab-bar { max-width: 500px; margin: 0 auto 15px auto; }
+            .profit-summary-grid { grid-template-columns: repeat(4, 1fr); }
         }
     </style>
 
@@ -327,7 +331,6 @@
         <button id="nav-admin" class="tab-nav-btn" style="color:#d90429;" onclick="switchTab('admin')">🔒 QUẢN LÝ (CHỦ)</button>
     </div>
 
-    <!-- TAB 1: MÀN HÌNH BÁN HÀNG CHÍNH -->
     <div id="tab-pos" class="tab-content active-tab-view">
         <div class="main-layout">
             <div class="tables-section">
@@ -401,7 +404,6 @@
         </div>
     </div>
 
-    <!-- TAB 2: KHU VỰC KẾ TOÁN THU NGÂN -->
     <div id="tab-today-bills" class="tab-content">
         <div class="card-view" style="background:#f0f5ff; border-left:5px solid #1890ff; padding:15px; border-radius:8px;">
             <h4 style="color:#0050b3; margin-bottom:12px; font-size:1.05rem;">🎛️ Báo Cáo Tiền Mặt & Két Tiền Ca Trực</h4>
@@ -426,7 +428,6 @@
         </div>
     </div>
 
-    <!-- TAB 3: KHU VỰC QUẢN LÝ RIÊNG CỦA CHỦ QUÁN -->
     <div id="tab-admin" class="tab-content">
         <div class="month-filter-box">
             <div>
@@ -440,16 +441,30 @@
             <div>
                 <label id="filter-select-label" style="font-weight:bold; font-size:0.8rem; color:var(--primary-color);">📅 Chọn Thời Gian:</label>
                 <select id="report-time-select" onchange="renderFilteredStats()">
-                    <!-- Dữ liệu thời gian nạp động tại đây -->
-                </select>
+                    </select>
             </div>
         </div>
 
-        <div class="month-summary-grid">
-            <div class="summary-mini-card" style="color:var(--primary-color);">
-                <div id="admin-revenue-type-label">Doanh Thu</div>
-                <span id="month-total-money">0</span>
+        <div class="profit-summary-grid">
+            <div class="profit-mini-card" style="border-top:3px solid var(--primary-color);">
+                <div style="color:var(--primary-color);">DOANH THU</div>
+                <span id="month-total-money" style="color:var(--primary-color);">0đ</span>
             </div>
+            <div class="profit-mini-card" style="border-top:3px solid #e76f51;">
+                <div style="color:#e76f51;">TỔNG GIÁ VỐN (COGS)</div>
+                <span id="month-total-cogs" style="color:#e76f51;">0đ</span>
+            </div>
+            <div class="profit-mini-card" style="border-top:3px solid #d90429;">
+                <div style="color:#d90429;">CHI PHÍ VẬN HÀNH</div>
+                <span id="month-total-expenses" style="color:#d90429;">0đ</span>
+            </div>
+            <div class="profit-mini-card" id="profit-card-box" style="border-top:3px solid #2a9d8f; background:#f4fbf7;">
+                <div>LỢI NHUẬN RÒNG (LỜI/LỖ)</div>
+                <span id="month-net-profit" style="color:#2a9d8f;">0đ</span>
+            </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:15px;">
             <div class="summary-mini-card" style="color:var(--dark-color);">
                 <div id="admin-items-type-label">Tổng Số Món</div>
                 <span id="month-total-items">0</span>
@@ -461,6 +476,27 @@
         </div>
 
         <button class="btn-print-report" onclick="printFilteredReport()">🖨️ XUẤT BÁO CÁO THỜI GIAN ĐANG CHỌN</button>
+
+        <div class="card-view" style="border-left: 4px solid #d90429;">
+            <h3>💸 Sổ Ghi Nhận Chi Phí Vận Hành (Đá, Lương, Điện...)</h3>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:10px;">
+                <input type="text" id="expense-title-input" placeholder="Mô tả (ví dụ: Tiền đá, Lương A...)">
+                <input type="number" id="expense-amount-input" placeholder="Số tiền (đ)">
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:8px;">
+                <input type="date" id="expense-date-input">
+                <button class="btn-action" style="margin-top:5px; background:#d90429; color:white; padding:10px;" onclick="addExpense()">+ Ghi Nhận Chi Phí</button>
+            </div>
+            <div class="scroll-list" id="expenses-list-container" style="max-height:200px; margin-top:12px;"></div>
+        </div>
+
+        <div class="card-view">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h3>⚙️ Bảng Giá Vốn Đầu Vào (COGS) Từng Món</h3>
+                <button onclick="toggleCostEditPanel()" style="padding:6px 12px; background:var(--primary-color); color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;" id="btn-toggle-cost-panel">► Chỉnh Giá Vốn</button>
+            </div>
+            <div id="cost-edit-panel" style="display:none; margin-top:12px;" class="scroll-list"></div>
+        </div>
 
         <div class="card-view">
             <h3>📊 Thống kê lượng tiêu thụ món (Nhu cầu khách hàng)</h3>
@@ -492,70 +528,73 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        // DANH MỤC MENU TÍCH HỢP GIÁ VỐN ĐẦU VÀO ƯỚC TÍNH (COST)
         const menuData = [
             { category: "CÀ PHÊ", items: [
-                { id: "cf_den_phin", name: "Cafe Đen (Phin)", price: 13000 }, 
-                { id: "cf_sua_phin", name: "Cafe Sữa (Phin)", price: 15000 },
-                { id: "cf_den_may", name: "Cafe Đen Máy", price: 15000 }, 
-                { id: "cf_sua_may", name: "Cafe Sữa Máy", price: 18000 },
-                { id: "cf_den_sg", name: "Cafe Đen Sài Gòn", price: 20000 }, 
-                { id: "cf_sua_sg", name: "Cafe Sữa Sài Gòn", price: 22000 },
-                { id: "bac_xiu", name: "Bạc Xỉu", price: 22000 }, 
-                { id: "bac_xiu_muoi", name: "Bạc Xỉu Muối", price: 27000 }, 
-                { id: "cf_muoi", name: "Cà Phê Muối", price: 25000 }
+                { id: "cf_den_phin", name: "Cafe Đen (Phin)", price: 13000, cost: 4000 }, 
+                { id: "cf_sua_phin", name: "Cafe Sữa (Phin)", price: 15000, cost: 5000 },
+                { id: "cf_den_may", name: "Cafe Đen Máy", price: 15000, cost: 4000 }, 
+                { id: "cf_sua_may", name: "Cafe Sữa Máy", price: 18000, cost: 6000 },
+                { id: "cf_den_sg", name: "Cafe Đen Sài Gòn", price: 20000, cost: 5000 }, 
+                { id: "cf_sua_sg", name: "Cafe Sữa Sài Gòn", price: 22000, cost: 7000 },
+                { id: "bac_xiu", name: "Bạc Xỉu", price: 22000, cost: 7000 }, 
+                { id: "bac_xiu_muoi", name: "Bạc Xỉu Muối", price: 27000, cost: 8000 }, 
+                { id: "cf_muoi", name: "Cà Phê Muối", price: 25000, cost: 8000 }
             ]},
             { category: "NON-CAFE", items: [
-                { id: "cacao_da_nong", name: "Cacao Đá/Nóng", price: 25000 }, 
-                { id: "tra_gung", name: "Trà Gừng", price: 22000 }, 
-                { id: "cacao_muoi", name: "Cacao Muối", price: 30000 }
+                { id: "cacao_da_nong", name: "Cacao Đá/Nóng", price: 25000, cost: 8000 }, 
+                { id: "tra_gung", name: "Trà Gừng", price: 22000, cost: 6000 }, 
+                { id: "cacao_muoi", name: "Cacao Muối", price: 30000, cost: 9000 }
             ]},
             { category: "SỮA CHUA", items: [
-                { id: "sua_chua_da", name: "Sữa Chua Đá", price: 20000 }, 
-                { id: "sua_chua_dau", name: "Sữa Chua Dâu", price: 25000 },
-                { id: "sua_chua_viet_quat", name: "Sữa Chua Việt Quất", price: 25000 }, 
-                { id: "sua_chua_dao", name: "Sữa Chua Đào", price: 25000 },
-                { id: "sua_chua_hop", name: "Sữa chua hộp", price: 13000 }
+                { id: "sua_chua_da", name: "Sữa Chua Đá", price: 20000, cost: 6000 }, 
+                { id: "sua_chua_dau", name: "Sữa Chua Dâu", price: 25000, cost: 8000 },
+                { id: "sua_chua_viet_quat", name: "Sữa Chua Việt Quất", price: 25000, cost: 8000 }, 
+                { id: "sua_chua_dao", name: "Sữa Chua Đào", price: 25000, cost: 8000 },
+                { id: "sua_chua_hop", name: "Sữa chua hộp", price: 13000, cost: 7000 }
             ]},
             { category: "NƯỚC GIẢI KHÁT", items: [
-                { id: "khoang", name: "Khoáng", price: 13000 }, 
-                { id: "khoang_sua", name: "Khoáng Sữa", price: 15000 },
-                { id: "sting_vang", name: "Sting Vàng", price: 15000 }, 
-                { id: "sting_dau", name: "Sting Dâu", price: 16000 }, 
-                { id: "bo_huc", name: "Bò Húc", price: 22000 },
-                { id: "coca_cola", name: "Coca Cola", price: 16000 }, 
-                { id: "tra_xanh_khong_do", name: "Trà xanh không độ", price: 16000 }, 
-                { id: "revive", name: "Revive", price: 15000 }
+                { id: "khoang", name: "Khoáng", price: 13000, cost: 5000 }, 
+                { id: "khoang_sua", name: "Khoáng Sữa", price: 15000, cost: 6000 },
+                { id: "sting_vang", name: "Sting Vàng", price: 15000, cost: 8000 }, 
+                { id: "sting_dau", name: "Sting Dâu", price: 16000, cost: 8000 }, 
+                { id: "bo_huc", name: "Bò Húc", price: 22000, cost: 12000 },
+                { id: "coca_cola", name: "Coca Cola", price: 16000, cost: 8000 }, 
+                { id: "tra_xanh_khong_do", name: "Trà xanh không độ", price: 16000, cost: 8000 }, 
+                { id: "revive", name: "Revive", price: 15000, cost: 8000 }
             ]},
             { category: "TRÀ TRÁI CÂY", items: [
-                { id: "tra_chanh_dau", name: "Trà Chanh Dâu", price: 25000 }, 
-                { id: "tra_dao_tt", name: "Trà Đào Truyền Thống", price: 25000 },
-                { id: "tra_chanh_vq", name: "Trà Chanh Việt Quất", price: 25000 }, 
-                { id: "tra_chanh_tt", name: "Trà Chanh Truyền Thống", price: 20000 }
+                { id: "tra_chanh_dau", name: "Trà Chanh Dâu", price: 25000, cost: 7000 }, 
+                { id: "tra_dao_tt", name: "Trà Đào Truyền Thống", price: 25000, cost: 7000 },
+                { id: "tra_chanh_vq", name: "Trà Chanh Việt Quất", price: 25000, cost: 7000 }, 
+                { id: "tra_chanh_tt", name: "Trà Chanh Truyền Thống", price: 20000, cost: 5000 }
             ]},
             { category: "NƯỚC TRÁI CÂY", items: [
-                { id: "nuoc_ep_cam", name: "Nước Ép Cam", price: 22000 }, 
-                { id: "nuoc_ep_ca_rot", name: "Nước Ép Cà Rốt", price: 22000 },
-                { id: "nuoc_ep_thom", name: "Nước Ép Thơm", price: 22000 }, 
-                { id: "nuoc_ep_oi", name: "Nước Ép ổi", price: 22000 }, 
-                { id: "sinh_to_bo", name: "Sinh Tố Bơ", price: 27000 }, 
-                { id: "nuoc_chanh_tuoi_xi_muoi", name: "Nước Chanh Tươi Xí Muội", price: 20000 }
+                { id: "nuoc_ep_cam", name: "Nước Ép Cam", price: 22000, cost: 8000 }, 
+                { id: "nuoc_ep_ca_rot", name: "Nước Ép Cà Rốt", price: 22000, cost: 6000 },
+                { id: "nuoc_ep_thom", name: "Nước Ép Thơm", price: 22000, cost: 6000 }, 
+                { id: "nuoc_ep_oi", name: "Nước Ép ổi", price: 22000, cost: 6000 }, 
+                { id: "sinh_to_bo", name: "Sinh Tố Bơ", price: 27000, cost: 10000 }, 
+                { id: "nuoc_chanh_tuoi_xi_muoi", name: "Nước Chanh Tươi Xí Muội", price: 20000, cost: 5000 }
             ]},
             { category: "ĐÁ XAY", items: [
-                { id: "cacao_da_xay", name: "Cacao Đá Xay", price: 30000 }, 
-                { id: "da_xay_vq", name: "Đá Xay Việt Quất", price: 30000 }, 
-                { id: "da_xay_dau", name: "Đá Xay Dâu", price: 30000 }
+                { id: "cacao_da_xay", name: "Cacao Đá Xay", price: 30000, cost: 10000 }, 
+                { id: "da_xay_vq", name: "Đá Xay Việt Quất", price: 30000, cost: 10000 }, 
+                { id: "da_xay_dau", name: "Đá Xay Dâu", price: 30000, cost: 10000 }
             ]},
             { category: "ĂN VẶT & KHÁC", items: [
-                { id: "thuoc_la", name: "Thuốc lá mèo", price: 25000 },
-                { id: "thuoc_la_meo", name: "Thuốc lá ngựa", price: 30000 },
-                { id: "thuoc_la_ngua_2_dieu", name: "Thuốc lá ngựa (2 điếu)", price: 5000 },
-                { id: "hat_dua_huong_duong", name: "Hạt dưa / Hướng dương", price: 13000 }
+                { id: "thuoc_la", name: "Thuốc lá mèo", price: 25000, cost: 20000 },
+                { id: "thuoc_la_meo", name: "Thuốc lá ngựa", price: 30000, cost: 24000 },
+                { id: "thuoc_la_ngua_2_dieu", name: "Thuốc lá ngựa (2 điếu)", price: 5000, cost: 3000 },
+                { id: "hat_dua_huong_duong", name: "Hạt dưa / Hướng dương", price: 13000, cost: 5000 }
             ]}
         ];
 
         let tables = {};
         let revenueHistory = {};
         let recentBills = [];
+        let expenses = []; // Mảng lưu danh sách chi phí vận hành
+        let customCosts = {}; // Mảng lưu giá vốn tùy chỉnh của chủ
         let initialCash = 0; 
         let currentTableId = null;
         let isDemandExpanded = false; 
@@ -567,7 +606,6 @@
         }
         const todayStr = getTodayString();
 
-        // CÁC HÀM XỬ LÝ LỌC THEO TUẦN (THỨ 2 ĐẾN CHỦ NHẬT)
         function getMondayDate(dateStr) {
             if (!dateStr) return null;
             let parts = dateStr.split('-');
@@ -596,6 +634,21 @@
             return `Tuần (${mStr} - ${sStr})`;
         }
 
+        // HÀM TRÍCH XUẤT GIÁ VỐN NGUYÊN LIỆU CHO CẢ MÓN CŨ LẪN MÓN MỚI
+        function getItemCost(item) {
+            if (item.id && customCosts[item.id] !== undefined) {
+                return parseFloat(customCosts[item.id]) || 0;
+            }
+            if (item.cost !== undefined && item.cost !== null && !isNaN(item.cost)) {
+                return parseFloat(item.cost);
+            }
+            for (let cat of menuData) {
+                let found = cat.items.find(i => i.id === item.id || i.name === item.name);
+                if (found && found.cost) return parseFloat(found.cost);
+            }
+            return 0;
+        }
+
         function initMenuSelect() {
             const select = document.getElementById("menu-select"); 
             if(!select) return;
@@ -614,6 +667,7 @@
         document.getElementById("today-date").textContent = todayStr.replace(/-/g, '/');
         initMenuSelect();
 
+        // LẮNG NGHE ĐỒNG BỘ MÂY FIREBASE BẢO TOÀN DỮ LIỆU CŨ
         db.ref('tino_coffee_store').on('value', (snapshot) => {
             const data = snapshot.val() || {};
             
@@ -644,6 +698,15 @@
                 recentBills = [];
             }
 
+            // ĐỌC BỔ SUNG: Dữ liệu chi phí vận hành & giá vốn riêng
+            if (data.expenses) {
+                expenses = Array.isArray(data.expenses) ? data.expenses : Object.values(data.expenses);
+            } else {
+                expenses = [];
+            }
+
+            customCosts = data.customCosts || {};
+
             initialCash = parseFloat(data.initialCash) || 0;
             if (document.activeElement !== document.getElementById("initial-cash-input")) {
                 document.getElementById("initial-cash-input").value = initialCash > 0 ? initialCash : "";
@@ -657,6 +720,8 @@
             renderTodayBillsOnly(); 
             buildMonthDropdownOptions(); 
             renderFilteredStats(); 
+            renderExpensesList();
+            renderCostEditPanel();
             if (currentTableId) renderOrderList();
         }, (error) => {
             document.getElementById("net-status").textContent = "❌ Lỗi kết nối đám mây!";
@@ -668,7 +733,9 @@
                 tables: tables,
                 revenueHistory: revenueHistory,
                 recentBills: recentBills,
-                initialCash: initialCash
+                initialCash: initialCash,
+                expenses: expenses,
+                customCosts: customCosts
             });
         }
 
@@ -704,6 +771,8 @@
                 document.getElementById('tab-admin').classList.add('active-tab-view');
                 document.getElementById('nav-admin').classList.add('active-tab-nav');
                 renderFilteredStats();
+                renderExpensesList();
+                renderCostEditPanel();
             }
         }
 
@@ -840,12 +909,6 @@
                         if (mStr) itemsSet.add(mStr);
                     }
                 });
-                Object.keys(revenueHistory).forEach(k => {
-                    if (k.includes('-') && k.split('-').length === 3) {
-                        let mStr = getMondayStr(k);
-                        if (mStr) itemsSet.add(mStr);
-                    }
-                });
 
                 let sortedWeeks = Array.from(itemsSet).sort((a, b) => {
                     const pA = a.split('-'); const pB = b.split('-');
@@ -867,9 +930,6 @@
                 itemsSet.add(curDayStr);
                 recentBills.forEach(bill => {
                     if (bill.date) itemsSet.add(bill.date.replace(/\//g, '-'));
-                });
-                Object.keys(revenueHistory).forEach(k => {
-                    if (k.includes('-') && k.split('-').length === 3) itemsSet.add(k);
                 });
 
                 let sortedDays = Array.from(itemsSet).sort((a, b) => {
@@ -893,46 +953,40 @@
             isDemandExpanded = false;
             buildMonthDropdownOptions();
             renderFilteredStats();
+            renderExpensesList();
         }
 
+        // CHỨC NĂNG CỐT LÕI: TÍNH TOÁN DOANH THU, COGS, CHI PHÍ VẬN HÀNH & LỢI NHUẬN RÒNG
         function renderFilteredStats() {
             if (!isAdminAuthenticated) return;
             const viewMode = document.getElementById("report-view-mode").value;
             const targetTime = document.getElementById("report-time-select").value;
             if (!targetTime) return;
 
-            if (viewMode === "month") {
-                document.getElementById("admin-revenue-type-label").textContent = "Doanh Thu Tháng";
-                document.getElementById("admin-items-type-label").textContent = "Tổng Số Món";
-                document.getElementById("admin-takeaway-type-label").textContent = "Mua Mang Đi";
-                document.getElementById("admin-bills-list-title").textContent = "Danh sách toàn bộ hóa đơn trong tháng";
-            } else if (viewMode === "week") {
-                document.getElementById("admin-revenue-type-label").textContent = "Doanh Thu Tuần";
-                document.getElementById("admin-items-type-label").textContent = "Món Trong Tuần";
-                document.getElementById("admin-takeaway-type-label").textContent = "Mang Đi Trong Tuần";
-                document.getElementById("admin-bills-list-title").textContent = "Danh sách hóa đơn chi tiết trong tuần";
-            } else {
-                document.getElementById("admin-revenue-type-label").textContent = "Doanh Thu Ngày";
-                document.getElementById("admin-items-type-label").textContent = "Món Trong Ngày";
-                document.getElementById("admin-takeaway-type-label").textContent = "Mang Đi Trong Ngày";
-                document.getElementById("admin-bills-list-title").textContent = "Danh sách hóa đơn chi tiết trong ngày";
-            }
-
+            // 1. Lọc danh sách hóa đơn theo thời gian chọn
             let filteredBills = recentBills.filter(bill => {
                 if (!bill.date) return false;
                 let parts = bill.date.split('-');
-                if (viewMode === "month") {
-                    return `${parts[1]}-${parts[2]}` === targetTime;
-                } else if (viewMode === "week") {
-                    return getMondayStr(bill.date.replace(/\//g, '-')) === targetTime;
-                } else {
-                    return bill.date === targetTime;
-                }
+                if (viewMode === "month") return `${parts[1]}-${parts[2]}` === targetTime;
+                if (viewMode === "week") return getMondayStr(bill.date.replace(/\//g, '-')) === targetTime;
+                return bill.date === targetTime;
             });
 
-            let totalMoney = filteredBills.reduce((sum, b) => sum + b.total, 0);
-            document.getElementById("month-total-money").textContent = totalMoney.toLocaleString('vi-VN') + "đ";
+            // 2. Lọc danh sách chi phí vận hành theo thời gian chọn
+            let filteredExpenses = expenses.filter(exp => {
+                if (!exp.date) return false;
+                let stdDate = exp.date.replace(/\//g, '-');
+                let parts = stdDate.split('-');
+                if (parts.length !== 3) return false;
+                if (viewMode === "month") return `${parts[1]}-${parts[2]}` === targetTime;
+                if (viewMode === "week") return getMondayStr(stdDate) === targetTime;
+                return stdDate === targetTime;
+            });
 
+            // 3. Tính toán 4 chỉ số tài chính
+            let totalMoney = filteredBills.reduce((sum, b) => sum + (parseFloat(b.total) || 0), 0);
+            
+            let totalCOGS = 0;
             let totalItemsCount = 0;
             let totalTakeawayCount = 0;
             let itemDemandDict = {}; 
@@ -940,18 +994,47 @@
             filteredBills.forEach(bill => {
                 if (bill.orderList) {
                     bill.orderList.forEach(item => {
-                        totalItemsCount += item.qty;
-                        if (item.isTakeAway) totalTakeawayCount += item.qty;
+                        let q = parseInt(item.qty) || 0;
+                        totalItemsCount += q;
+                        if (item.isTakeAway) totalTakeawayCount += q;
+                        
+                        // Cộng dồn giá vốn nguyên liệu
+                        let itemCost = getItemCost(item);
+                        totalCOGS += itemCost * q;
+
                         let key = item.name; 
-                        itemDemandDict[key] = (itemDemandDict[key] || 0) + item.qty;
+                        itemDemandDict[key] = (itemDemandDict[key] || 0) + q;
                     });
                 }
             });
+
+            let totalOpExpenses = filteredExpenses.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+            let netProfit = totalMoney - totalCOGS - totalOpExpenses;
+
+            // 4. Đổ chỉ số lên giao diện
+            document.getElementById("month-total-money").textContent = totalMoney.toLocaleString('vi-VN') + "đ";
+            document.getElementById("month-total-cogs").textContent = totalCOGS.toLocaleString('vi-VN') + "đ";
+            document.getElementById("month-total-expenses").textContent = totalOpExpenses.toLocaleString('vi-VN') + "đ";
+            
+            const netProfitSpan = document.getElementById("month-net-profit");
+            const profitCardBox = document.getElementById("profit-card-box");
+            netProfitSpan.textContent = netProfit.toLocaleString('vi-VN') + "đ";
+
+            if (netProfit >= 0) {
+                netProfitSpan.style.color = "#2a9d8f";
+                profitCardBox.style.borderTopColor = "#2a9d8f";
+                profitCardBox.style.background = "#f4fbf7";
+            } else {
+                netProfitSpan.style.color = "#d90429";
+                profitCardBox.style.borderTopColor = "#d90429";
+                profitCardBox.style.background = "#fff0f2";
+            }
+
             document.getElementById("month-total-items").textContent = totalItemsCount;
             document.getElementById("month-total-takeaway").textContent = totalTakeawayCount;
 
+            // Đổ bảng xếp hạng tiêu thụ
             let sortedDemandArr = Object.entries(itemDemandDict).sort((a, b) => b[1] - a[1]);
-
             const demandContainer = document.getElementById("item-demand-container");
             demandContainer.innerHTML = "";
             if (sortedDemandArr.length === 0) {
@@ -977,6 +1060,7 @@
                 }
             }
 
+            // Đổ danh sách hóa đơn
             const billsContainer = document.getElementById("all-month-bills-container");
             billsContainer.innerHTML = "";
             if (filteredBills.length === 0) {
@@ -1006,6 +1090,7 @@
                 });
             }
 
+            // Đổ lịch sử doanh thu ngày
             let flatRevenueHistory = {};
             if (typeof revenueHistory === 'object' && revenueHistory !== null) {
                 Object.keys(revenueHistory).forEach(key1 => {
@@ -1066,13 +1151,9 @@
                 let parts = date.split('-');
                 if (parts.length === 3) {
                     let isMatch = false;
-                    if (viewMode === "month") {
-                        isMatch = `${parts[1]}-${parts[2]}` === targetTime;
-                    } else if (viewMode === "week") {
-                        isMatch = getMondayStr(date) === targetTime;
-                    } else {
-                        isMatch = date === targetTime;
-                    }
+                    if (viewMode === "month") isMatch = `${parts[1]}-${parts[2]}` === targetTime;
+                    else if (viewMode === "week") isMatch = getMondayStr(date) === targetTime;
+                    else isMatch = date === targetTime;
                     
                     if (isMatch) {
                         hasHistory = true;
@@ -1091,6 +1172,141 @@
                 }
             });
             if (!hasHistory) historyContainer.innerHTML = `<div style="color:#aaa; text-align:center;">Chưa có lịch sử doanh thu</div>`;
+        }
+
+        // HÀM XỬ LÝ SỔ CHI PHÍ VẬN HÀNH
+        function addExpense() {
+            const titleInput = document.getElementById("expense-title-input");
+            const amountInput = document.getElementById("expense-amount-input");
+            const dateInput = document.getElementById("expense-date-input");
+
+            let title = titleInput.value.trim();
+            let amount = parseFloat(amountInput.value) || 0;
+            let rawDate = dateInput.value; 
+
+            if (!title || amount <= 0) {
+                alert("Vui lòng nhập mô tả và số tiền hợp lệ!");
+                return;
+            }
+
+            let dateStr = todayStr;
+            if (rawDate) {
+                let p = rawDate.split('-');
+                if (p.length === 3) dateStr = `${p[2]}-${p[1]}-${p[0]}`;
+            }
+
+            expenses.unshift({
+                id: 'exp_' + Date.now(),
+                title: title,
+                amount: amount,
+                date: dateStr
+            });
+
+            titleInput.value = "";
+            amountInput.value = "";
+            
+            pushDataToCloud();
+            renderFilteredStats();
+            renderExpensesList();
+        }
+
+        function deleteExpense(expId) {
+            if (confirm("Xóa khoản chi phí này?")) {
+                expenses = expenses.filter(e => e.id !== expId);
+                pushDataToCloud();
+                renderFilteredStats();
+                renderExpensesList();
+            }
+        }
+
+        function renderExpensesList() {
+            const container = document.getElementById("expenses-list-container");
+            if (!container) return;
+            container.innerHTML = "";
+
+            const viewMode = document.getElementById("report-view-mode").value;
+            const targetTime = document.getElementById("report-time-select").value;
+
+            let filtered = expenses.filter(exp => {
+                if (!exp.date || !targetTime) return true;
+                let stdDate = exp.date.replace(/\//g, '-');
+                let parts = stdDate.split('-');
+                if (parts.length !== 3) return false;
+                if (viewMode === "month") return `${parts[1]}-${parts[2]}` === targetTime;
+                if (viewMode === "week") return getMondayStr(stdDate) === targetTime;
+                return stdDate === targetTime;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div style="color:#aaa; text-align:center; padding:10px;">Chưa có chi phí nào ghi nhận trong kỳ này</div>`;
+                return;
+            }
+
+            filtered.forEach(e => {
+                const div = document.createElement("div");
+                div.className = "history-item";
+                div.innerHTML = `
+                    <div>
+                        <strong>${e.title}</strong><br>
+                        <small style="color:#666;">📅 ${e.date.replace(/-/g, '/')}</small>
+                    </div>
+                    <div>
+                        <span style="color:#d90429; font-weight:bold; margin-right:10px;">-${e.amount.toLocaleString('vi-VN')}đ</span>
+                        <button onclick="deleteExpense('${e.id}')" style="background:#ddd; border:none; border-radius:4px; padding:3px 8px; cursor:pointer; font-weight:bold;">Xóa</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // HÀM HIỂN THỊ VÀ CHỈNH SỬA GIÁ VỐN TỪNG MÓN
+        function toggleCostEditPanel() {
+            const panel = document.getElementById("cost-edit-panel");
+            const btn = document.getElementById("btn-toggle-cost-panel");
+            if (panel.style.display === "none") {
+                panel.style.display = "block";
+                btn.textContent = "▲ Thu gọn";
+            } else {
+                panel.style.display = "none";
+                btn.textContent = "► Chỉnh Giá Vốn";
+            }
+        }
+
+        function renderCostEditPanel() {
+            const container = document.getElementById("cost-edit-panel");
+            if (!container) return;
+            container.innerHTML = "";
+
+            menuData.forEach(cat => {
+                const catTitle = document.createElement("h4");
+                catTitle.style.margin = "10px 0 5px 0";
+                catTitle.style.color = "var(--primary-color)";
+                catTitle.textContent = cat.category;
+                container.appendChild(catTitle);
+
+                cat.items.forEach(item => {
+                    let currentCost = getItemCost(item);
+                    const div = document.createElement("div");
+                    div.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid #eee;";
+                    div.innerHTML = `
+                        <div style="font-size:0.9rem;">
+                            <strong>${item.name}</strong> <small style="color:#666;">(Giá bán: ${item.price.toLocaleString()}đ)</small>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:5px; width:130px;">
+                            <span style="font-size:0.8rem; font-weight:bold;">Vốn:</span>
+                            <input type="number" value="${currentCost}" onchange="updateItemCost('${item.id}', this.value)" style="padding:4px; margin:0; text-align:right; font-weight:bold;">
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+            });
+        }
+
+        function updateItemCost(itemId, newCostVal) {
+            let val = parseFloat(newCostVal) || 0;
+            customCosts[itemId] = val;
+            pushDataToCloud();
+            renderFilteredStats();
         }
 
         function selectTable(tableId) {
@@ -1180,7 +1396,13 @@
             if (existingItem) { existingItem.qty += 1; } 
             else { 
                 currentOrder.push({ 
-                    id: itemInfo.id, name: itemInfo.name, price: itemInfo.price, qty: 1, isTakeAway: isTakeAway, note: itemNote 
+                    id: itemInfo.id, 
+                    name: itemInfo.name, 
+                    price: itemInfo.price, 
+                    cost: getItemCost(itemInfo),
+                    qty: 1, 
+                    isTakeAway: isTakeAway, 
+                    note: itemNote 
                 }); 
             }
             
