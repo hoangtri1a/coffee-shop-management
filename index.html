@@ -162,7 +162,7 @@
         }
         .fee-selector-grid select { padding: 10px; margin-top: 2px; font-size: 0.95rem; }
 
-        select, input[type="text"], input[type="number"], input[type="date"], .btn-action {
+        select, input[type="text"], input[type="number"], input[type="date"], input[type="month"], .btn-action {
             width: 100%;
             padding: 12px;
             margin-top: 5px;
@@ -259,7 +259,7 @@
         }
         .month-filter-box select { margin: 0; padding: 10px; font-size: 0.9rem; }
 
-        /* GRID THỐNG KÊ LỜI LỖ QUẢN LÝ (4 Ô MỚI) */
+        /* GRID THỐNG KÊ LỜI LỖ QUẢN LÝ (4 Ô) */
         .profit-summary-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -331,6 +331,7 @@
         <button id="nav-admin" class="tab-nav-btn" style="color:#d90429;" onclick="switchTab('admin')">🔒 QUẢN LÝ (CHỦ)</button>
     </div>
 
+    <!-- TAB 1: MÀN HÌNH BÁN HÀNG CHÍNH -->
     <div id="tab-pos" class="tab-content active-tab-view">
         <div class="main-layout">
             <div class="tables-section">
@@ -404,6 +405,7 @@
         </div>
     </div>
 
+    <!-- TAB 2: KHU VỰC KẾ TOÁN THU NGÂN -->
     <div id="tab-today-bills" class="tab-content">
         <div class="card-view" style="background:#f0f5ff; border-left:5px solid #1890ff; padding:15px; border-radius:8px;">
             <h4 style="color:#0050b3; margin-bottom:12px; font-size:1.05rem;">🎛️ Báo Cáo Tiền Mặt & Két Tiền Ca Trực</h4>
@@ -428,6 +430,7 @@
         </div>
     </div>
 
+    <!-- TAB 3: KHU VỰC QUẢN LÝ RIÊNG CỦA CHỦ QUÁN -->
     <div id="tab-admin" class="tab-content">
         <div class="month-filter-box">
             <div>
@@ -441,10 +444,12 @@
             <div>
                 <label id="filter-select-label" style="font-weight:bold; font-size:0.8rem; color:var(--primary-color);">📅 Chọn Thời Gian:</label>
                 <select id="report-time-select" onchange="renderFilteredStats()">
-                    </select>
+                    <!-- Dữ liệu thời gian nạp động -->
+                </select>
             </div>
         </div>
 
+        <!-- 4 BẢNG TÍNH LỢI NHUẬN RÒNG LỜI / LỖ THỜI GIAN THỰC -->
         <div class="profit-summary-grid">
             <div class="profit-mini-card" style="border-top:3px solid var(--primary-color);">
                 <div style="color:var(--primary-color);">DOANH THU</div>
@@ -477,19 +482,34 @@
 
         <button class="btn-print-report" onclick="printFilteredReport()">🖨️ XUẤT BÁO CÁO THỜI GIAN ĐANG CHỌN</button>
 
+        <!-- KHU VỰC SỔ GHI NHẬN CHI PHÍ VẬN HÀNH (HỖ TRỢ NHẬP THEO TUẦN / THÁNG / NGÀY) -->
         <div class="card-view" style="border-left: 4px solid #d90429;">
             <h3>💸 Sổ Ghi Nhận Chi Phí Vận Hành (Đá, Lương, Điện...)</h3>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:10px;">
-                <input type="text" id="expense-title-input" placeholder="Mô tả (ví dụ: Tiền đá, Lương A...)">
+                <input type="text" id="expense-title-input" placeholder="Mô tả (vd: Lương tuần A, Tiền đá...)">
                 <input type="number" id="expense-amount-input" placeholder="Số tiền (đ)">
             </div>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:8px;">
-                <input type="date" id="expense-date-input">
-                <button class="btn-action" style="margin-top:5px; background:#d90429; color:white; padding:10px;" onclick="addExpense()">+ Ghi Nhận Chi Phí</button>
+            <div style="display:grid; grid-template-columns: 1fr 1.2fr; gap:8px; margin-top:8px;">
+                <div>
+                    <label style="font-size:0.75rem; font-weight:bold; color:#555;">Chu kỳ chi phí:</label>
+                    <select id="expense-period-type" onchange="onExpensePeriodTypeChange()" style="margin-top:2px;">
+                        <option value="week" selected>Theo Tuần</option>
+                        <option value="month">Theo Tháng</option>
+                        <option value="day">Theo Ngày</option>
+                    </select>
+                </div>
+                <div>
+                    <label id="expense-date-label" style="font-size:0.75rem; font-weight:bold; color:#555;">Chọn ngày trong tuần:</label>
+                    <div id="expense-date-input-container">
+                        <input type="date" id="expense-date-input" style="margin-top:2px;">
+                    </div>
+                </div>
             </div>
-            <div class="scroll-list" id="expenses-list-container" style="max-height:200px; margin-top:12px;"></div>
+            <button class="btn-action" style="margin-top:10px; background:#d90429; color:white; padding:10px;" onclick="addExpense()">+ Ghi Nhận Chi Phí</button>
+            <div class="scroll-list" id="expenses-list-container" style="max-height:220px; margin-top:12px;"></div>
         </div>
 
+        <!-- BẢNG ĐIỀU CHỈNH GIÁ VỐN TỪNG MÓN NGUYÊN LIỆU -->
         <div class="card-view">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <h3>⚙️ Bảng Giá Vốn Đầu Vào (COGS) Từng Món</h3>
@@ -528,7 +548,6 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // DANH MỤC MENU TÍCH HỢP GIÁ VỐN ĐẦU VÀO ƯỚC TÍNH (COST)
         const menuData = [
             { category: "CÀ PHÊ", items: [
                 { id: "cf_den_phin", name: "Cafe Đen (Phin)", price: 13000, cost: 4000 }, 
@@ -593,8 +612,8 @@
         let tables = {};
         let revenueHistory = {};
         let recentBills = [];
-        let expenses = []; // Mảng lưu danh sách chi phí vận hành
-        let customCosts = {}; // Mảng lưu giá vốn tùy chỉnh của chủ
+        let expenses = []; 
+        let customCosts = {}; 
         let initialCash = 0; 
         let currentTableId = null;
         let isDemandExpanded = false; 
@@ -631,10 +650,9 @@
             
             let mStr = `${String(mon.getDate()).padStart(2, '0')}/${String(mon.getMonth() + 1).padStart(2, '0')}`;
             let sStr = `${String(sun.getDate()).padStart(2, '0')}/${String(sun.getMonth() + 1).padStart(2, '0')}/${sun.getFullYear()}`;
-            return `Tuần (${mStr} - ${sStr})`;
+            return `${mStr} - ${sStr}`;
         }
 
-        // HÀM TRÍCH XUẤT GIÁ VỐN NGUYÊN LIỆU CHO CẢ MÓN CŨ LẪN MÓN MỚI
         function getItemCost(item) {
             if (item.id && customCosts[item.id] !== undefined) {
                 return parseFloat(customCosts[item.id]) || 0;
@@ -698,7 +716,6 @@
                 recentBills = [];
             }
 
-            // ĐỌC BỔ SUNG: Dữ liệu chi phí vận hành & giá vốn riêng
             if (data.expenses) {
                 expenses = Array.isArray(data.expenses) ? data.expenses : Object.values(data.expenses);
             } else {
@@ -770,6 +787,7 @@
             } else {
                 document.getElementById('tab-admin').classList.add('active-tab-view');
                 document.getElementById('nav-admin').classList.add('active-tab-nav');
+                onExpensePeriodTypeChange();
                 renderFilteredStats();
                 renderExpensesList();
                 renderCostEditPanel();
@@ -918,7 +936,7 @@
                 select.innerHTML = "";
                 sortedWeeks.forEach(wMonStr => {
                     const opt = document.createElement("option");
-                    opt.value = wMonStr; opt.textContent = getWeekLabel(wMonStr);
+                    opt.value = wMonStr; opt.textContent = `Tuần (${getWeekLabel(wMonStr)})`;
                     select.appendChild(opt);
                 });
 
@@ -956,14 +974,13 @@
             renderExpensesList();
         }
 
-        // CHỨC NĂNG CỐT LÕI: TÍNH TOÁN DOANH THU, COGS, CHI PHÍ VẬN HÀNH & LỢI NHUẬN RÒNG
+        // CHỨC NĂNG CỐT LÕI: TÍNH TOÁN DOANH THU, COGS, CHI PHÍ VẬN HÀNH & LỢI NHUẬN RÒNG LỜI / LỖ
         function renderFilteredStats() {
             if (!isAdminAuthenticated) return;
             const viewMode = document.getElementById("report-view-mode").value;
             const targetTime = document.getElementById("report-time-select").value;
             if (!targetTime) return;
 
-            // 1. Lọc danh sách hóa đơn theo thời gian chọn
             let filteredBills = recentBills.filter(bill => {
                 if (!bill.date) return false;
                 let parts = bill.date.split('-');
@@ -972,20 +989,32 @@
                 return bill.date === targetTime;
             });
 
-            // 2. Lọc danh sách chi phí vận hành theo thời gian chọn
             let filteredExpenses = expenses.filter(exp => {
                 if (!exp.date) return false;
                 let stdDate = exp.date.replace(/\//g, '-');
                 let parts = stdDate.split('-');
                 if (parts.length !== 3) return false;
-                if (viewMode === "month") return `${parts[1]}-${parts[2]}` === targetTime;
-                if (viewMode === "week") return getMondayStr(stdDate) === targetTime;
-                return stdDate === targetTime;
+                let pType = exp.periodType || "day";
+
+                if (viewMode === "month") {
+                    return `${parts[1]}-${parts[2]}` === targetTime;
+                } else if (viewMode === "week") {
+                    if (pType === "month") {
+                        return `${parts[1]}-${parts[2]}` === `${targetTime.split('-')[1]}-${targetTime.split('-')[2]}`;
+                    }
+                    return getMondayStr(stdDate) === targetTime;
+                } else { 
+                    if (pType === "month") {
+                        return `${parts[1]}-${parts[2]}` === `${targetTime.split('-')[1]}-${targetTime.split('-')[2]}`;
+                    }
+                    if (pType === "week") {
+                        return getMondayStr(stdDate) === getMondayStr(targetTime);
+                    }
+                    return stdDate === targetTime;
+                }
             });
 
-            // 3. Tính toán 4 chỉ số tài chính
             let totalMoney = filteredBills.reduce((sum, b) => sum + (parseFloat(b.total) || 0), 0);
-            
             let totalCOGS = 0;
             let totalItemsCount = 0;
             let totalTakeawayCount = 0;
@@ -998,7 +1027,6 @@
                         totalItemsCount += q;
                         if (item.isTakeAway) totalTakeawayCount += q;
                         
-                        // Cộng dồn giá vốn nguyên liệu
                         let itemCost = getItemCost(item);
                         totalCOGS += itemCost * q;
 
@@ -1011,7 +1039,6 @@
             let totalOpExpenses = filteredExpenses.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
             let netProfit = totalMoney - totalCOGS - totalOpExpenses;
 
-            // 4. Đổ chỉ số lên giao diện
             document.getElementById("month-total-money").textContent = totalMoney.toLocaleString('vi-VN') + "đ";
             document.getElementById("month-total-cogs").textContent = totalCOGS.toLocaleString('vi-VN') + "đ";
             document.getElementById("month-total-expenses").textContent = totalOpExpenses.toLocaleString('vi-VN') + "đ";
@@ -1033,7 +1060,6 @@
             document.getElementById("month-total-items").textContent = totalItemsCount;
             document.getElementById("month-total-takeaway").textContent = totalTakeawayCount;
 
-            // Đổ bảng xếp hạng tiêu thụ
             let sortedDemandArr = Object.entries(itemDemandDict).sort((a, b) => b[1] - a[1]);
             const demandContainer = document.getElementById("item-demand-container");
             demandContainer.innerHTML = "";
@@ -1060,7 +1086,6 @@
                 }
             }
 
-            // Đổ danh sách hóa đơn
             const billsContainer = document.getElementById("all-month-bills-container");
             billsContainer.innerHTML = "";
             if (filteredBills.length === 0) {
@@ -1090,7 +1115,6 @@
                 });
             }
 
-            // Đổ lịch sử doanh thu ngày
             let flatRevenueHistory = {};
             if (typeof revenueHistory === 'object' && revenueHistory !== null) {
                 Object.keys(revenueHistory).forEach(key1 => {
@@ -1174,15 +1198,38 @@
             if (!hasHistory) historyContainer.innerHTML = `<div style="color:#aaa; text-align:center;">Chưa có lịch sử doanh thu</div>`;
         }
 
-        // HÀM XỬ LÝ SỔ CHI PHÍ VẬN HÀNH
+        // HÀM XỬ LÝ SỔ CHI PHÍ VẬN HÀNH (HỖ TRỢ TUẦN / THÁNG / NGÀY)
+        function onExpensePeriodTypeChange() {
+            const pTypeSelect = document.getElementById("expense-period-type");
+            if (!pTypeSelect) return;
+            const pType = pTypeSelect.value;
+            const label = document.getElementById("expense-date-label");
+            const container = document.getElementById("expense-date-input-container");
+
+            const d = new Date();
+            const ymd = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            const ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+
+            if (pType === "month") {
+                label.textContent = "Chọn tháng phát sinh:";
+                container.innerHTML = `<input type="month" id="expense-month-input" style="margin-top:2px;" value="${ym}">`;
+            } else if (pType === "week") {
+                label.textContent = "Chọn 1 ngày trong tuần:";
+                container.innerHTML = `<input type="date" id="expense-date-input" style="margin-top:2px;" value="${ymd}">`;
+            } else {
+                label.textContent = "Chọn ngày chi trả:";
+                container.innerHTML = `<input type="date" id="expense-date-input" style="margin-top:2px;" value="${ymd}">`;
+            }
+        }
+
         function addExpense() {
             const titleInput = document.getElementById("expense-title-input");
             const amountInput = document.getElementById("expense-amount-input");
-            const dateInput = document.getElementById("expense-date-input");
+            const pTypeSelect = document.getElementById("expense-period-type");
 
             let title = titleInput.value.trim();
             let amount = parseFloat(amountInput.value) || 0;
-            let rawDate = dateInput.value; 
+            let periodType = pTypeSelect ? pTypeSelect.value : "week";
 
             if (!title || amount <= 0) {
                 alert("Vui lòng nhập mô tả và số tiền hợp lệ!");
@@ -1190,16 +1237,42 @@
             }
 
             let dateStr = todayStr;
-            if (rawDate) {
-                let p = rawDate.split('-');
-                if (p.length === 3) dateStr = `${p[2]}-${p[1]}-${p[0]}`;
+
+            if (periodType === "month") {
+                const monthInput = document.getElementById("expense-month-input");
+                let rawMonth = monthInput ? monthInput.value : "";
+                if (rawMonth) {
+                    let p = rawMonth.split('-');
+                    if (p.length === 2) dateStr = `01-${p[1]}-${p[0]}`;
+                }
+            } else if (periodType === "week") {
+                const dateInput = document.getElementById("expense-date-input");
+                let rawDate = dateInput ? dateInput.value : "";
+                if (rawDate) {
+                    let p = rawDate.split('-');
+                    if (p.length === 3) {
+                        let std = `${p[2]}-${p[1]}-${p[0]}`;
+                        let mon = getMondayStr(std);
+                        if (mon) dateStr = mon;
+                    }
+                } else {
+                    dateStr = getMondayStr(todayStr);
+                }
+            } else {
+                const dateInput = document.getElementById("expense-date-input");
+                let rawDate = dateInput ? dateInput.value : "";
+                if (rawDate) {
+                    let p = rawDate.split('-');
+                    if (p.length === 3) dateStr = `${p[2]}-${p[1]}-${p[0]}`;
+                }
             }
 
             expenses.unshift({
                 id: 'exp_' + Date.now(),
                 title: title,
                 amount: amount,
-                date: dateStr
+                date: dateStr,
+                periodType: periodType
             });
 
             titleInput.value = "";
@@ -1232,9 +1305,24 @@
                 let stdDate = exp.date.replace(/\//g, '-');
                 let parts = stdDate.split('-');
                 if (parts.length !== 3) return false;
-                if (viewMode === "month") return `${parts[1]}-${parts[2]}` === targetTime;
-                if (viewMode === "week") return getMondayStr(stdDate) === targetTime;
-                return stdDate === targetTime;
+                let pType = exp.periodType || "day";
+
+                if (viewMode === "month") {
+                    return `${parts[1]}-${parts[2]}` === targetTime;
+                } else if (viewMode === "week") {
+                    if (pType === "month") {
+                        return `${parts[1]}-${parts[2]}` === `${targetTime.split('-')[1]}-${targetTime.split('-')[2]}`;
+                    }
+                    return getMondayStr(stdDate) === targetTime;
+                } else { 
+                    if (pType === "month") {
+                        return `${parts[1]}-${parts[2]}` === `${targetTime.split('-')[1]}-${targetTime.split('-')[2]}`;
+                    }
+                    if (pType === "week") {
+                        return getMondayStr(stdDate) === getMondayStr(targetTime);
+                    }
+                    return stdDate === targetTime;
+                }
             });
 
             if (filtered.length === 0) {
@@ -1245,10 +1333,21 @@
             filtered.forEach(e => {
                 const div = document.createElement("div");
                 div.className = "history-item";
+                
+                let pType = e.periodType || "day";
+                let timeBadge = "";
+                if (pType === "week") {
+                    timeBadge = `Tuần (${getWeekLabel(e.date)})`;
+                } else if (pType === "month") {
+                    timeBadge = `Tháng ${e.date.split('-')[1]}/${e.date.split('-')[2]}`;
+                } else {
+                    timeBadge = `Ngày ${e.date.replace(/-/g, '/')}`;
+                }
+
                 div.innerHTML = `
                     <div>
                         <strong>${e.title}</strong><br>
-                        <small style="color:#666;">📅 ${e.date.replace(/-/g, '/')}</small>
+                        <small style="color:#666;">🏷️ ${timeBadge}</small>
                     </div>
                     <div>
                         <span style="color:#d90429; font-weight:bold; margin-right:10px;">-${e.amount.toLocaleString('vi-VN')}đ</span>
@@ -1259,7 +1358,6 @@
             });
         }
 
-        // HÀM HIỂN THỊ VÀ CHỈNH SỬA GIÁ VỐN TỪNG MÓN
         function toggleCostEditPanel() {
             const panel = document.getElementById("cost-edit-panel");
             const btn = document.getElementById("btn-toggle-cost-panel");
@@ -1540,7 +1638,7 @@
                 timeLabel = `Tháng ${targetTime.replace('-', '/')}`;
             } else if (viewMode === "week") {
                 reportTitle = "BÁO CÁO DOANH THU TUẦN";
-                timeLabel = getWeekLabel(targetTime);
+                timeLabel = `Tuần (${getWeekLabel(targetTime)})`;
             }
 
             reportWindow.document.write(`
