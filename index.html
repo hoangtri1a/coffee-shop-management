@@ -12,6 +12,7 @@
             --success-color: #2ec4b6;
             --danger-color: #e71d36;
             --active-color: #ff9f1c;
+            --excel-color: #1d6f42;
         }
 
         * {
@@ -259,7 +260,6 @@
         }
         .month-filter-box select { margin: 0; padding: 10px; font-size: 0.9rem; }
 
-        /* GRID THỐNG KÊ LỜI LỖ QUẢN LÝ (4 Ô) */
         .profit-summary-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -278,17 +278,35 @@
         }
         .profit-mini-card span { display: block; font-size: 1.15rem; margin-top: 4px; }
 
+        .btn-action-group {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
         .btn-print-report {
             background-color: #2b2d42;
             color: white;
             border: none;
             padding: 12px;
-            font-size: 1rem;
+            font-size: 0.95rem;
             border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
             width: 100%;
-            margin-bottom: 15px;
+        }
+
+        .btn-excel-export {
+            background-color: var(--excel-color);
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 0.95rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
         }
 
         .btn-toggle-demand {
@@ -309,6 +327,7 @@
             .tables-grid { grid-template-columns: repeat(6, 1fr); }
             .tab-bar { max-width: 500px; margin: 0 auto 15px auto; }
             .profit-summary-grid { grid-template-columns: repeat(4, 1fr); }
+            .btn-action-group { grid-template-columns: 1fr 1fr; }
         }
     </style>
 
@@ -480,9 +499,13 @@
             </div>
         </div>
 
-        <button class="btn-print-report" onclick="printFilteredReport()">🖨️ XUẤT BÁO CÁO THỜI GIAN ĐANG CHỌN</button>
+        <!-- NHÓM NÚT XUẤT BÁO CÁO VÀ FILE EXCEL THUẾ -->
+        <div class="btn-action-group">
+            <button class="btn-print-report" onclick="printFilteredReport()">🖨️ XUẤT BÁO CÁO IN / PDF</button>
+            <button class="btn-excel-export" onclick="exportTaxExcel()">📊 XUẤT EXCEL KÊ KHAI THUẾ (.CSV)</button>
+        </div>
 
-        <!-- KHU VỰC SỔ GHI NHẬN CHI PHÍ VẬN HÀNH (ĐỒNG BỘ TRỰC TIẾP TỪ NÚT LỌC Ở TRÊN) -->
+        <!-- KHU VỰC SỔ GHI NHẬN CHI PHÍ VẬN HÀNH (ĐỒNG BỘ CÁC KỲ Ở TRÊN) -->
         <div class="card-view" style="border-left: 4px solid #d90429;">
             <h3>💸 Sổ Ghi Nhận Chi Phí Vận Hành (Đá, Lương, Điện...)</h3>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:10px;">
@@ -969,7 +992,6 @@
             buildExpenseDropdownOptions();
         }
 
-        // HÀM NẠP ĐỒNG BỘ CÁC KỲ TUẦN/THÁNG SANG Ô NHẬP CHI PHÍ VẬN HÀNH
         function buildExpenseDropdownOptions() {
             const select = document.getElementById("expense-target-select");
             const pType = document.getElementById("expense-period-type").value;
@@ -1084,7 +1106,6 @@
             buildExpenseDropdownOptions();
         }
 
-        // TÍNH TOÁN DOANH THU, COGS, CHI PHÍ VẬN HÀNH & LỢI NHUẬN RÒNG
         function renderFilteredStats() {
             if (!isAdminAuthenticated) return;
             const viewMode = document.getElementById("report-view-mode").value;
@@ -1308,7 +1329,6 @@
             if (!hasHistory) historyContainer.innerHTML = `<div style="color:#aaa; text-align:center;">Chưa có lịch sử doanh thu</div>`;
         }
 
-        // HÀM XỬ LÝ SỔ CHI PHÍ VẬN HÀNH (ĐỒNG BỘ ĐỘNG THEO DANH SÁCH BỘ LỌC)
         function addExpense() {
             const titleInput = document.getElementById("expense-title-input");
             const amountInput = document.getElementById("expense-amount-input");
@@ -1736,6 +1756,73 @@
                 </html>
             `);
             reportWindow.document.close();
+        }
+
+        // HÀM XUẤT FILE EXCEL (.CSV CHUẨN TIẾNG VIỆT UTF-8) KÊ KHAI THUẾ
+        function exportTaxExcel() {
+            const viewMode = document.getElementById("report-view-mode").value;
+            const targetTime = document.getElementById("report-time-select").value;
+            if (!targetTime) return;
+
+            let filteredBills = recentBills.filter(bill => {
+                if (!bill.date) return false;
+                let parts = bill.date.split('-');
+                if (viewMode === "month") return `${parts[1]}-${parts[2]}` === targetTime;
+                if (viewMode === "week") return getMondayStr(bill.date.replace(/\//g, '-')) === targetTime;
+                return bill.date === targetTime;
+            });
+
+            if (filteredBills.length === 0) {
+                alert("Khoảng thời gian này chưa có dữ liệu hóa đơn để xuất file Excel!");
+                return;
+            }
+
+            // UTF-8 BOM giu font Tieng Viet trong Excel
+            let csvContent = "\uFEFF";
+            
+            let timeLabel = `Ngày_${targetTime}`;
+            let periodDisplay = `Ngày ${targetTime.replace(/-/g, '/')}`;
+            if (viewMode === "month") {
+                timeLabel = `Thang_${targetTime}`;
+                periodDisplay = `Tháng ${targetTime.replace('-', '/')}`;
+            } else if (viewMode === "week") {
+                timeLabel = `Tuan_${targetTime}`;
+                periodDisplay = `Tuần (${getWeekLabel(targetTime)})`;
+            }
+
+            csvContent += `BÁO CÁO DOANH THU KÊ KHAI THUẾ - TINO COFFEE\n`;
+            csvContent += `Kỳ đối soát:,${periodDisplay}\n`;
+            csvContent += `Ngày xuất file:,${getTodayString().replace(/-/g, '/')}\n\n`;
+
+            csvContent += `Mã Hóa Đơn,Ngày Bán,Giờ Bán,Bàn/Khu Vực,Hình Thức Thanh Toán,Tạm Tính (đ),Giảm Giá (%),Phụ Thu (%),Doanh Thu Thu Về (đ)\n`;
+
+            let totalRev = 0;
+            let totalCash = 0;
+            let totalBank = 0;
+
+            filteredBills.forEach(b => {
+                let labelTable = b.tableId === 'takeaway' ? 'Mang Đi' : (b.tableId === 28 ? 'Bàn 28 (Tầng 2)' : `Bàn ${b.tableId}`);
+                let pMethod = b.paymentMethod === 'chuyen_khoan' ? 'Chuyển khoản' : 'Tiền mặt';
+                let amt = parseFloat(b.total) || 0;
+                totalRev += amt;
+                if (b.paymentMethod === 'chuyen_khoan') totalBank += amt;
+                else totalCash += amt;
+
+                csvContent += `"${b.id}","${b.date.replace(/-/g, '/')}","${b.time}","${labelTable}","${pMethod}",${b.subtotal},${b.discount || 0},${b.surcharge || 0},${amt}\n`;
+            });
+
+            csvContent += `\nTỔNG CỘNG DOANH THU THU VỀ:,,,,,,,,${totalRev}\n`;
+            csvContent += `• Tiền mặt thu két:,,,,,,,,${totalCash}\n`;
+            csvContent += `• Chuyển khoản ngân hàng:,,,,,,,,${totalBank}\n`;
+
+            let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            let url = URL.createObjectURL(blob);
+            let link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `TinoCoffee_KeKhaiThue_${timeLabel}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
     </script>
 </body>
