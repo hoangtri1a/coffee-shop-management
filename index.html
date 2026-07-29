@@ -505,7 +505,7 @@
             <button class="btn-excel-export" onclick="exportTaxExcel()">📊 XUẤT EXCEL KÊ KHAI THUẾ (.CSV)</button>
         </div>
 
-        <!-- KHU VỰC SỔ GHI NHẬN CHI PHÍ VẬN HÀNH (ĐỒNG BỘ CÁC KỲ Ở TRÊN) -->
+        <!-- KHU VỰC SỔ GHI NHẬN CHI PHÍ VẬN HÀNH -->
         <div class="card-view" style="border-left: 4px solid #d90429;">
             <h3>💸 Sổ Ghi Nhận Chi Phí Vận Hành (Đá, Lương, Điện...)</h3>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:10px;">
@@ -593,6 +593,8 @@
                 { id: "sua_chua_dau", name: "Sữa Chua Dâu", price: 25000, cost: 8000 },
                 { id: "sua_chua_viet_quat", name: "Sữa Chua Việt Quất", price: 25000, cost: 8000 }, 
                 { id: "sua_chua_dao", name: "Sữa Chua Đào", price: 25000, cost: 8000 },
+                { id: "sua_chua_chanh_day", name: "Sữa Chua Chanh Dây", price: 25000, cost: 8000 },
+                { id: "sua_chua_xoai", name: "Sữa Chua Xoài", price: 25000, cost: 8000 },
                 { id: "sua_chua_hop", name: "Sữa chua hộp", price: 13000, cost: 7000 }
             ]},
             { category: "NƯỚC GIẢI KHÁT", items: [
@@ -609,7 +611,9 @@
                 { id: "tra_chanh_dau", name: "Trà Chanh Dâu", price: 25000, cost: 7000 }, 
                 { id: "tra_dao_tt", name: "Trà Đào Truyền Thống", price: 25000, cost: 7000 },
                 { id: "tra_chanh_vq", name: "Trà Chanh Việt Quất", price: 25000, cost: 7000 }, 
-                { id: "tra_chanh_tt", name: "Trà Chanh Truyền Thống", price: 20000, cost: 5000 }
+                { id: "tra_chanh_tt", name: "Trà Chanh Truyền Thống", price: 20000, cost: 5000 },
+                { id: "tra_chanh_day", name: "Trà Chanh Dây", price: 25000, cost: 7000 },
+                { id: "tra_xoai", name: "Trà Xoài", price: 25000, cost: 7000 }
             ]},
             { category: "NƯỚC TRÁI CÂY", items: [
                 { id: "nuoc_ep_cam", name: "Nước Ép Cam", price: 22000, cost: 8000 }, 
@@ -1777,10 +1781,10 @@
                 return;
             }
 
-            // UTF-8 BOM giu font Tieng Viet trong Excel
+            // UTF-8 BOM giữ font Tiếng Việt trong Excel
             let csvContent = "\uFEFF";
             
-            let timeLabel = `Ngày_${targetTime}`;
+            let timeLabel = `Ngay_${targetTime}`;
             let periodDisplay = `Ngày ${targetTime.replace(/-/g, '/')}`;
             if (viewMode === "month") {
                 timeLabel = `Thang_${targetTime}`;
